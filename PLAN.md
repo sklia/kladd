@@ -20,7 +20,7 @@ Not another notes app. The gap it fills:
 | License | MIT | No code is borrowed from GPL projects, so nothing forces copyleft. MIT is the convention for open-source dev tools |
 | Tooling | Vite+ (`vite-plus`) | VoidZero's unified toolchain: Vite, Vitest, Oxc-based lint/format, package management in one CLI. MIT, actively developed, pre-1.0 (accept some churn). Fallback is plain Vite + Biome + pnpm, a config change not a rewrite |
 | Rust crates | `notify` for file watching; `grep`/`ignore` for v0.4 search | The standards; ripgrep's own internals for search rather than shelling out |
-| Design language | Deferred until chrome exists | System fonts, system light/dark, platform-conventional details already locked. Becomes a small design-tokens file when the shell gets built. No component library |
+| Design language | Deferred until chrome exists | System fonts, system light/dark, platform-conventional details already locked. Becomes a small design-tokens file when the shell gets built, including motion tokens (durations, easings). No component library |
 | File model | Folder-first | Open any folder or single file. The folder is the state; no vault, no sidecar metadata. Git-ness is detected, not declared: a folder with `.git` gets git affordances, a plain folder doesn't. A GitHub repo is just a cloned folder |
 | Git | Commit/push/pull only, via system `git` binary | Shelling out inherits the user's SSH signing, hooks, and credential helpers for free. No branch UI, no staging concept, no merge tooling. Git-generic (works with GitLab/ADO too); GitHub-specific sugar comes later |
 | Markdown | GFM + YAML frontmatter + Mermaid | Exactly what AI tools emit and GitHub renders. No wikilinks: they drag the vault model back in |
