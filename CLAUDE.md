@@ -21,6 +21,8 @@ refine what you and your agents write.
   Shared code is why the whole app feels like one thing; a second
   implementation of something that exists is a bug.
 - Follow each platform's conventions; the app should feel at home, not portable.
-- No new dependency for what a few lines can do.
+- Dependencies only when strictly necessary. A few lines of our own code
+  always beats a package; every dependency must fight for its life like
+  features do.
 - Test behaviors that matter (the save/watch loop, editing), not coverage numbers.
 - Scope creep goes to PLAN.md's roadmap, not into the current change.
