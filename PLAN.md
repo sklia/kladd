@@ -1,6 +1,6 @@
-# md
+# kladd
 
-A fast, minimal, cross-platform markdown editor built for people who work in plain files and alongside AI agents. The calm window where you read and refine what you and your agents write.
+Norwegian for "rough draft". A fast, minimal, cross-platform markdown editor built for people who work in plain files and alongside AI agents. The calm window where you read and refine what you and your agents write.
 
 ## Positioning
 
@@ -16,7 +16,7 @@ Not another notes app. The gap it fills:
 |---|---|---|
 | Platforms | macOS + Windows from day one | User works on both |
 | Stack | Tauri 2 + CodeMirror 6 | ~10MB binary, OS webview, built-in updater. Obsidian's editor is CM6, so the exact editing feel is reachable with a proven engine. Known tax: WKWebView (macOS) vs WebView2 (Windows) rendering differences, test on both |
-| UI framework | React 19 + Tailwind + Zustand | Validated by [writer-computer](https://github.com/joelbqz/writer-computer), a Tauri + React 19 + CM6 markdown editor that feels snappy in practice. Familiar stack, best AI-codegen support. md is built from scratch, not a fork: writer-computer (GPL-3.0, not accepting PRs, low activity) is inspiration only, never copied code |
+| UI framework | React 19 + Tailwind + Zustand | Validated by [writer-computer](https://github.com/joelbqz/writer-computer), a Tauri + React 19 + CM6 markdown editor that feels snappy in practice. Familiar stack, best AI-codegen support. kladd is built from scratch, not a fork: writer-computer (GPL-3.0, not accepting PRs, low activity) is inspiration only, never copied code |
 | License | MIT | No code is borrowed from GPL projects, so nothing forces copyleft. MIT is the convention for open-source dev tools |
 | Tooling | Vite+ (`vite-plus`) | VoidZero's unified toolchain: Vite, Vitest, Oxc-based lint/format, package management in one CLI. MIT, actively developed, pre-1.0 (accept some churn). Fallback is plain Vite + Biome + pnpm, a config change not a rewrite |
 | Rust crates | `notify` for file watching; `grep`/`ignore` for v0.4 search | The standards; ripgrep's own internals for search rather than shelling out |
@@ -55,7 +55,7 @@ The bar: opens instantly, edits like Obsidian, never fights an agent.
 - Session restore: reopen last folder and tabs on launch.
 - Settings window on cmd+, : one clean, well-organized pane that grows with the app. Few settings at v0.1 is a feature.
 - System light/dark, system fonts, no theming engine.
-- `md .` CLI opener.
+- `kladd .` CLI opener.
 
 ### Ship it
 - Signed + notarized macOS build, unsigned Windows build.
