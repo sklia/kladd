@@ -1,0 +1,116 @@
+/* Classes referenced by livePreview.ts decorations. Line height depends only
+   on these per-line classes, never on whether marks are revealed, so moving
+   the cursor never reflows the document vertically. */
+
+.cm-editor {
+  height: 100%;
+  background: var(--bg);
+  color: var(--fg);
+}
+
+.cm-editor.cm-focused {
+  outline: none;
+}
+
+.cm-editor .cm-scroller {
+  font-family: system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  justify-content: center;
+}
+
+.cm-editor .cm-content {
+  max-width: 44rem;
+  flex-grow: 0;
+  padding: 3rem 1.5rem;
+  caret-color: var(--fg);
+}
+
+.cm-editor .cm-line {
+  padding: 0 2px;
+}
+
+/* Headings. The default highlight style underlines heading text; undo it. */
+.cm-line.cm-h1 span,
+.cm-line.cm-h2 span,
+.cm-line.cm-h3 span,
+.cm-line.cm-h4 span,
+.cm-line.cm-h5 span,
+.cm-line.cm-h6 span {
+  text-decoration: none;
+}
+
+.cm-line.cm-h1 {
+  font-size: 1.7em;
+  font-weight: 700;
+}
+.cm-line.cm-h2 {
+  font-size: 1.45em;
+  font-weight: 700;
+}
+.cm-line.cm-h3 {
+  font-size: 1.25em;
+  font-weight: 650;
+}
+.cm-line.cm-h4 {
+  font-size: 1.1em;
+  font-weight: 650;
+}
+.cm-line.cm-h5 {
+  font-size: 1em;
+  font-weight: 650;
+}
+.cm-line.cm-h6 {
+  font-size: 1em;
+  font-weight: 650;
+  color: var(--muted);
+}
+
+/* Inline */
+.cm-strong {
+  font-weight: 700;
+}
+.cm-em {
+  font-style: italic;
+}
+.cm-strike {
+  text-decoration: line-through;
+  color: var(--muted);
+}
+.cm-link {
+  color: var(--accent);
+}
+.cm-inline-code,
+.cm-line.cm-codeblock {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.9em;
+}
+.cm-inline-code {
+  background: var(--code-bg);
+  border-radius: 4px;
+  padding: 0.1em 0.3em;
+}
+
+/* Blocks */
+.cm-line.cm-blockquote {
+  border-left: 3px solid var(--rule);
+  padding-left: 0.9em;
+  color: var(--muted);
+}
+.cm-line.cm-codeblock {
+  background: var(--code-bg);
+  padding: 0 0.9em;
+}
+
+/* Lists */
+.cm-bullet {
+  color: var(--muted);
+}
+.cm-list-mark {
+  color: var(--muted);
+}
+.cm-task input {
+  vertical-align: middle;
+  margin: 0 0.1em;
+  accent-color: var(--accent);
+}

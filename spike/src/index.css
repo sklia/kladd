@@ -1,0 +1,35 @@
+:root {
+  --bg: #ffffff;
+  --fg: #1f2328;
+  --muted: #636c76;
+  --accent: #0969da;
+  --code-bg: #f6f8fa;
+  --rule: #d1d9e0;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1c1c1e;
+    --fg: #e6e6e8;
+    --muted: #8e8e93;
+    --accent: #58a6ff;
+    --code-bg: #2a2a2d;
+    --rule: #3a3a3d;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root,
+.editor-host {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--bg);
+}
