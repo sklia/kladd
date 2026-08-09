@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.1](https://github.com/sklia/kladd/compare/v0.1.0...v0.1.1) (2026-08-09)
+
+
+### Bug Fixes
+
+* **ci:** dispatch release build since token-created tags skip triggers ([4d772f5](https://github.com/sklia/kladd/commit/4d772f50ed18b9cd69f7d7356aa32ffe65e5ec2c))
+
 ## 0.1.0 (2026-08-09)
 
 ### Features
