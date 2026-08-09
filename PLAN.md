@@ -83,9 +83,12 @@ Cheap now, expensive later. Most of it comes with the toolchain:
 - Pre-commit hook (`.githooks/pre-commit`) runs `vp check` (~2s). Enable once
   per clone: `git config core.hooksPath .githooks`. No pre-push hook:
   anything slower than a second lives in CI.
-- CI: GitHub Actions (check + test jobs) with path filters and
-  cancel-in-progress; CodeQL on TS changes and weekly. Platform builds on
-  tags come with the release pipeline (build order step 6).
+- CI: GitHub Actions, one job (check + test) with path filters,
+  cancel-in-progress, and a 5-minute timeout cap; free-tier minutes are the
+  constraint while the repo is private. CodeQL needs a public repo (or paid
+  Advanced Security): add it back when kladd goes public. Platform builds on
+  tags come with the release pipeline (build order step 6); note macOS
+  runners bill 10x minutes.
 
 ## Roadmap
 

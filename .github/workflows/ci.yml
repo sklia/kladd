@@ -11,13 +11,15 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
-defaults:
-  run:
-    working-directory: spike
-
 jobs:
-  check:
+  # One job: setup (checkout + install) dominates runtime on the free tier,
+  # so parallel jobs would double the bill for seconds of feedback.
+  ci:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
+    defaults:
+      run:
+        working-directory: spike
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -30,18 +32,4 @@ jobs:
           cache-dependency-path: spike/pnpm-lock.yaml
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec vp check
-
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          package_json_file: spike/package.json
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 24
-          cache: pnpm
-          cache-dependency-path: spike/pnpm-lock.yaml
-      - run: pnpm install --frozen-lockfile
       - run: pnpm exec vp test
