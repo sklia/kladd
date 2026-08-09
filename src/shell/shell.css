@@ -98,7 +98,7 @@
   margin: 0.25rem 0;
 }
 .menu-item,
-.empty-recents button {
+.empty-recents li > button:first-child {
   display: flex;
   flex-direction: column;
   align-items: stretch;
@@ -114,7 +114,7 @@
   text-align: left;
 }
 .menu-item.active,
-.empty-recents button:hover {
+.empty-recents li > button:first-child:hover {
   background: var(--accent-soft);
 }
 .menu-item.danger {
@@ -132,6 +132,20 @@
 .menu-path {
   color: var(--muted);
   font-size: 0.85em;
+}
+.menu-remove {
+  visibility: hidden;
+  color: var(--muted);
+  border-radius: 4px;
+  padding: 0 0.3rem;
+  margin-right: -0.25rem;
+}
+.menu-item.active .menu-remove {
+  visibility: visible;
+}
+.menu-remove:hover {
+  color: var(--fg);
+  background: var(--rule);
 }
 
 .menu-backdrop {
@@ -191,6 +205,40 @@
   color: var(--muted);
 }
 
+/* Drag-to-move */
+.tree-row.dragging {
+  opacity: 0.35;
+}
+.tree-row.drop-target {
+  background: var(--accent-soft);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+.filetree.drop-root {
+  box-shadow: inset 0 0 0 2px var(--accent-soft);
+}
+.tree-ghost {
+  position: fixed;
+  z-index: 40;
+  pointer-events: none;
+  max-width: 240px;
+  padding: 0.25rem 0.6rem;
+  background: var(--raised);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  box-shadow: 0 6px 20px rgb(0 0 0 / 0.2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transform: scale(1.02) rotate(0.5deg);
+  animation: ghost-lift var(--motion-fast) var(--motion-ease);
+}
+@keyframes ghost-lift {
+  from {
+    opacity: 0;
+    transform: scale(1);
+  }
+}
+
 /* Sidebar resize handle: invisible until hovered, generous hit area. */
 .sidebar-resize {
   width: 5px;
@@ -206,7 +254,11 @@
 }
 .tree-twist {
   display: inline-block;
-  width: 1em;
+  width: 10px;
+  height: 10px;
+  margin-right: 0.3rem;
+  vertical-align: -1px;
+  stroke: currentColor;
   transition: transform var(--motion-fast) var(--motion-ease);
 }
 .tree-twist.open {
@@ -451,6 +503,32 @@
   margin: 0;
   padding: 0;
   width: min(360px, 80vw);
+}
+.empty-recents li {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+.empty-recents li > button:first-child {
+  flex: 1;
+  min-width: 0;
+}
+.recent-remove {
+  font: inherit;
+  color: var(--muted);
+  background: none;
+  border: none;
+  border-radius: 4px;
+  padding: 0.2rem 0.45rem;
+  cursor: default;
+  visibility: hidden;
+}
+.empty-recents li:hover .recent-remove {
+  visibility: visible;
+}
+.recent-remove:hover {
+  color: var(--fg);
+  background: var(--rule);
 }
 
 /* Thin overlay scrollbars in chrome panes */

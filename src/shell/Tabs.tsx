@@ -1,7 +1,10 @@
+import { stripExt } from "../lib/names.ts";
 import { useTabs } from "../store/tabs.ts";
+import { useWorkspace } from "../store/workspace.ts";
 
 export function Tabs() {
   const tabs = useTabs((s) => s.tabs);
+  const titles = useWorkspace((s) => s.titles);
   const active = useTabs((s) => s.active);
   const setActive = useTabs((s) => s.setActive);
   const closeTab = useTabs((s) => s.closeTab);
@@ -21,7 +24,7 @@ export function Tabs() {
             else setActive(tab.path);
           }}
         >
-          <span className="tab-name">{tab.name}</span>
+          <span className="tab-name">{titles[tab.path] ?? stripExt(tab.name)}</span>
           <button
             type="button"
             className="tab-close"

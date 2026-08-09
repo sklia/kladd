@@ -8,6 +8,8 @@ export interface MenuItem {
   /** Secondary line under the label, e.g. a folder path. */
   detail?: string;
   danger?: boolean;
+  /** Shows a remove affordance (hover ×, Backspace/Delete). */
+  removable?: boolean;
 }
 
 export type MenuEntry = MenuItem | "separator";
@@ -21,15 +23,19 @@ export function Menu({
   anchor,
   onSelect,
   onClose,
+  onRemove,
 }: {
   entries: MenuEntry[];
   /** Viewport coordinates of the top-left corner. */
   anchor: { x: number; y: number };
   onSelect: (id: string) => void;
   onClose: () => void;
+  /** Removal handler for `removable` items; the menu stays open. */
+  onRemove?: (id: string) => void;
 }) {
   const items = entries.filter(isItem);
-  const [active, setActive] = useState(0);
+  const [rawActive, setActive] = useState(0);
+  const active = Math.min(rawActive, Math.max(items.length - 1, 0));
   const host = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -57,6 +63,12 @@ export function Menu({
     else if (e.key === "End") setActive(items.length - 1);
     else if ((e.key === "Enter" || e.key === " ") && items[active] !== undefined) {
       pick(items[active].id);
+    } else if (
+      (e.key === "Backspace" || e.key === "Delete") &&
+      items[active]?.removable === true &&
+      onRemove !== undefined
+    ) {
+      onRemove(items[active].id);
     } else return;
     e.preventDefault();
     e.stopPropagation();
@@ -97,6 +109,18 @@ export function Menu({
               <span className="menu-row">
                 <span className="menu-label">{entry.label}</span>
                 {entry.hint !== undefined && <span className="menu-hint">{entry.hint}</span>}
+                {entry.removable === true && onRemove !== undefined && (
+                  <span
+                    className="menu-remove"
+                    title="Remove from list"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onRemove(entry.id);
+                    }}
+                  >
+                    ×
+                  </span>
+                )}
               </span>
               {entry.detail !== undefined && <span className="menu-path">{entry.detail}</span>}
             </button>

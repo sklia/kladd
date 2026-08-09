@@ -12,11 +12,17 @@ export function TitleBar() {
   const button = useRef<HTMLButtonElement>(null);
   const [menuAt, setMenuAt] = useState<{ x: number; y: number } | null>(null);
 
+  const removeRecent = useWorkspace((s) => s.removeRecent);
   const otherRecents = recents.filter((r) => r !== folder);
   const entries: MenuEntry[] = [
     { id: "open", label: "Open Folder…", hint: "⌘O" },
     ...(otherRecents.length > 0 ? (["separator"] as const) : []),
-    ...otherRecents.map((r) => ({ id: r, label: r.split("/").pop() ?? r, detail: r })),
+    ...otherRecents.map((r) => ({
+      id: r,
+      label: r.split("/").pop() ?? r,
+      detail: r,
+      removable: true,
+    })),
   ];
 
   const openMenu = () => {
@@ -47,6 +53,7 @@ export function TitleBar() {
             if (id === "open") void pickFolder();
             else void openFolder(id);
           }}
+          onRemove={removeRecent}
         />
       )}
     </header>

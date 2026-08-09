@@ -56,6 +56,7 @@ The bar: opens instantly, edits like Obsidian, never fights an agent.
 - Quick switcher (cmd+P fuzzy file search).
 - Native menus and platform-standard shortcuts on both OSes.
 - File operations: new file (⌘N), new folder, rename, delete-to-trash — inline in the tree, no dialogs.
+- Display names from file content: tree, tabs, and switcher show frontmatter `title:`, else the first `# H1`, else the filename. Files only — folders keep their real names. The name lives inside the file (disk stays the only truth; no sidecar metadata, ever). Switcher matches display name and filename both.
 - Full keyboard navigation: every action reachable without a mouse (tree, tabs, menus, dialogs).
 - Session restore: reopen last folder and tabs on launch.
 - Settings window on cmd+, : one clean, well-organized pane that grows with the app. Few settings at v0.1 is a feature.

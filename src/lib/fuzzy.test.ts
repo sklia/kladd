@@ -1,5 +1,21 @@
 import { describe, expect, it } from "vite-plus/test";
-import { fuzzyFilter, fuzzyScore } from "./fuzzy.ts";
+import { fuzzyFilter, fuzzyFilterBy, fuzzyScore } from "./fuzzy.ts";
+
+describe("fuzzyFilterBy", () => {
+  const items = [
+    { rel: "implementation-plan.md", title: "Implementation plan" },
+    { rel: "misc.md", title: undefined },
+  ];
+
+  it("matches on any key", () => {
+    expect(fuzzyFilterBy("Implementation", items, (i) => [i.title, i.rel])).toHaveLength(1);
+    expect(fuzzyFilterBy("misc", items, (i) => [i.title, i.rel])).toHaveLength(1);
+  });
+
+  it("skips undefined keys without matching everything", () => {
+    expect(fuzzyFilterBy("zzz", items, (i) => [i.title, i.rel])).toHaveLength(0);
+  });
+});
 
 describe("fuzzyScore", () => {
   it("matches subsequences case-insensitively", () => {

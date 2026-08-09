@@ -1,11 +1,12 @@
 import { Fragment, useRef, useState } from "react";
-import { validateName } from "../lib/names.ts";
+import { ensureMd, stripExt, validateName } from "../lib/names.ts";
 import { parentDir, type TreeRow, visibleRows } from "../lib/tree.ts";
 import { createEntry, deleteEntry, renameEntry } from "../store/fileOps.ts";
 import { useTabs } from "../store/tabs.ts";
 import { type DirEntry, useWorkspace } from "../store/workspace.ts";
 import { Menu, type MenuEntry } from "./Menu.tsx";
 import { TreeEditRow } from "./TreeEditRow.tsx";
+import { useTreeDrag } from "./useTreeDrag.ts";
 
 interface ContextMenuState {
   at: { x: number; y: number };
@@ -45,6 +46,7 @@ export function FileTree() {
   const activeTab = useTabs((s) => s.active);
   const host = useRef<HTMLElement>(null);
   const [context, setContext] = useState<ContextMenuState | null>(null);
+  const { drag, onRowPointerDown, consumeDrop } = useTreeDrag(folder ?? "");
 
   if (folder === null) return null;
   const rows = visibleRows(folder, entries, expanded);
@@ -53,13 +55,18 @@ export function FileTree() {
     if (editing === null) return;
     const dir = editing.kind === "rename" ? parentDir(editing.target) : editing.target;
     const ownName = editing.kind === "rename" ? (editing.target.split("/").pop() ?? "") : null;
+    // Typing ".md" is never required; files get it appended.
+    const isFile =
+      editing.kind === "new-file" ||
+      (editing.kind === "rename" &&
+        entries[dir]?.find((e) => e.path === editing.target)?.isDir !== true);
+    const name = isFile ? ensureMd(raw.trim()) : raw.trim();
     const siblings = (entries[dir] ?? []).map((e) => e.name).filter((n) => n !== ownName);
-    const invalid = validateName(raw, siblings);
+    const invalid = validateName(name, siblings);
     if (invalid !== null) {
       setEditing({ ...editing, error: invalid });
       return;
     }
-    const name = raw.trim();
     const failed =
       editing.kind === "rename"
         ? await renameEntry(editing.target, name)
@@ -77,6 +84,7 @@ export function FileTree() {
   };
 
   const activate = (entry: DirEntry) => {
+    if (consumeDrop()) return; // the click that ends a drag is not a click
     setSelected(entry.path);
     if (entry.isDir) void toggleDir(entry.path);
     else void openTab(entry.path);
@@ -91,7 +99,12 @@ export function FileTree() {
     const target = context?.entry ?? null;
     if (id === "rename" && target !== null) void startEdit("rename");
     else if (id === "delete" && target !== null) void deleteEntry(target.path);
-    else if (id === "new-file" || id === "new-dir") void startEdit(id);
+    else if (id === "new-file" || id === "new-dir") {
+      // Create where the user clicked: background → root, folder → inside
+      // it, file → beside it.
+      const dir = target === null ? folder : target.isDir ? target.path : parentDir(target.path);
+      void startEdit(id, dir);
+    }
   };
 
   const onKeyDown = (e: React.KeyboardEvent) => {
@@ -134,7 +147,7 @@ export function FileTree() {
     if (anchor !== afterPath) return null;
     return (
       <TreeEditRow
-        initial={editing.kind === "new-file" ? "untitled.md" : "untitled"}
+        initial="untitled"
         depth={depth}
         error={editing.error}
         onCommit={(raw) => void commitEdit(raw)}
@@ -146,7 +159,7 @@ export function FileTree() {
   return (
     <nav
       ref={host}
-      className="filetree"
+      className={`filetree${drag?.over === folder ? " drop-root" : ""}`}
       tabIndex={0}
       onKeyDown={onKeyDown}
       onContextMenu={(e) => {
@@ -159,7 +172,7 @@ export function FileTree() {
         <Fragment key={entry.path}>
           {editing?.kind === "rename" && editing.target === entry.path ? (
             <TreeEditRow
-              initial={entry.name}
+              initial={entry.isDir ? entry.name : stripExt(entry.name)}
               depth={depth}
               error={editing.error}
               onCommit={(raw) => void commitEdit(raw)}
@@ -171,9 +184,12 @@ export function FileTree() {
               data-path={entry.path}
               className={`tree-row${entry.isDir ? " tree-dir" : ""}${
                 selected === entry.path ? " selected" : ""
-              }${activeTab === entry.path ? " active" : ""}`}
+              }${activeTab === entry.path ? " active" : ""}${
+                drag?.entry.path === entry.path ? " dragging" : ""
+              }${drag?.over === entry.path ? " drop-target" : ""}`}
               style={{ paddingLeft: `${depth * 0.85 + 0.5}rem` }}
               tabIndex={-1}
+              onPointerDown={onRowPointerDown(entry)}
               onClick={() => activate(entry)}
               onContextMenu={(e) => {
                 e.preventDefault();
@@ -182,14 +198,25 @@ export function FileTree() {
               }}
             >
               {entry.isDir && (
-                <span className={`tree-twist${expanded.has(entry.path) ? " open" : ""}`}>›</span>
+                <svg
+                  className={`tree-twist${expanded.has(entry.path) ? " open" : ""}`}
+                  viewBox="0 0 10 10"
+                  aria-hidden="true"
+                >
+                  <path d="M3.5 2 L7 5 L3.5 8" fill="none" strokeWidth="1.5" />
+                </svg>
               )}
-              {entry.name}
+              {entry.isDir ? entry.name : (entry.title ?? stripExt(entry.name))}
             </button>
           )}
           {entry.isDir && editRowFor(entry.path, depth + 1)}
         </Fragment>
       ))}
+      {drag !== null && (
+        <div className="tree-ghost" style={{ left: drag.x + 10, top: drag.y + 6 }}>
+          {drag.entry.isDir ? drag.entry.name : (drag.entry.title ?? stripExt(drag.entry.name))}
+        </div>
+      )}
       {context !== null && (
         <Menu
           entries={menuEntries(context.entry)}

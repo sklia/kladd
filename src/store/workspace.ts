@@ -8,6 +8,20 @@ export interface DirEntry {
   name: string;
   path: string;
   isDir: boolean;
+  title?: string;
+}
+
+export interface FileHit {
+  rel: string;
+  title?: string;
+}
+
+function titleMap(folder: string, files: FileHit[]): Record<string, string> {
+  const titles: Record<string, string> = {};
+  for (const f of files) {
+    if (f.title !== undefined) titles[`${folder}/${f.rel}`] = f.title;
+  }
+  return titles;
 }
 
 const RECENTS_KEY = "kladd.recentFolders";
@@ -35,8 +49,10 @@ interface WorkspaceState {
   /** Lazily loaded children, keyed by directory path. */
   entries: Record<string, DirEntry[]>;
   expanded: Set<string>;
-  /** All files under folder, relative paths, for the quick switcher. */
-  files: string[];
+  /** All markdown files under folder, for the quick switcher. */
+  files: FileHit[];
+  /** Display titles by absolute path (tabs, tree fall back per entry). */
+  titles: Record<string, string>;
   /** Tree row selection (keyboard nav + file op target). */
   selected: string | null;
   setSelected: (path: string | null) => void;
@@ -45,7 +61,8 @@ interface WorkspaceState {
   setEditing: (editing: TreeEditing | null) => void;
   /** Begin an inline edit: rename the selection, or create inside it
    * (a selected file targets its parent directory; nothing targets root). */
-  startEdit: (kind: TreeEditing["kind"]) => Promise<void>;
+  startEdit: (kind: TreeEditing["kind"], dirOverride?: string) => Promise<void>;
+  removeRecent: (path: string) => void;
   openFolder: (path: string) => Promise<void>;
   pickFolder: () => Promise<void>;
   toggleDir: (path: string) => Promise<void>;
@@ -60,25 +77,32 @@ export const useWorkspace = create<WorkspaceState>()((set, get) => ({
   entries: {},
   expanded: new Set(),
   files: [],
+  titles: {},
   selected: null,
   setSelected: (selected) => set({ selected }),
   editing: null,
   setEditing: (editing) => set({ editing }),
 
-  startEdit: async (kind) => {
+  startEdit: async (kind, dirOverride) => {
     const { folder, selected } = get();
     if (folder === null) return;
     if (kind === "rename") {
       if (selected !== null) set({ editing: { kind, target: selected } });
       return;
     }
-    let dir = folder;
-    if (selected !== null) {
+    let dir = dirOverride ?? folder;
+    if (dirOverride === undefined && selected !== null) {
       const entry = get().entries[parentDir(selected)]?.find((e) => e.path === selected);
       dir = entry?.isDir === true ? selected : parentDir(selected);
     }
     if (dir !== folder && !get().expanded.has(dir)) await get().toggleDir(dir);
     set({ editing: { kind, target: dir } });
+  },
+
+  removeRecent: (path) => {
+    const recents = get().recents.filter((r) => r !== path);
+    localStorage.setItem(RECENTS_KEY, JSON.stringify(recents));
+    set({ recents });
   },
 
   openFolder: async (path) => {
@@ -97,8 +121,8 @@ export const useWorkspace = create<WorkspaceState>()((set, get) => ({
     });
     void invoke("watch_workspace", { root: path });
     // The full walk can be slow on huge folders; don't block the tree on it.
-    const files = await invoke<string[]>("list_files", { root: path });
-    if (get().folder === path) set({ files });
+    const files = await invoke<FileHit[]>("list_files", { root: path });
+    if (get().folder === path) set({ files, titles: titleMap(path, files) });
   },
 
   pickFolder: async () => {
@@ -138,11 +162,12 @@ export const useWorkspace = create<WorkspaceState>()((set, get) => ({
           }
         }),
     );
-    const files = await invoke<string[]>("list_files", { root: folder });
+    const files = await invoke<FileHit[]>("list_files", { root: folder });
     if (get().folder !== folder) return; // workspace switched mid-refresh
     set({
       entries: { ...get().entries, ...Object.fromEntries(reloaded.filter((r) => r !== null)) },
       files,
+      titles: titleMap(folder, files),
     });
   },
 }));

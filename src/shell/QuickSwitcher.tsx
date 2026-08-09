@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
-import { fuzzyFilter } from "../lib/fuzzy.ts";
+import { fuzzyFilterBy } from "../lib/fuzzy.ts";
+import { stripExt } from "../lib/names.ts";
 import { useTabs } from "../store/tabs.ts";
 import { useWorkspace } from "../store/workspace.ts";
 import { Overlay } from "./Overlay.tsx";
@@ -11,7 +12,11 @@ export function QuickSwitcher({ onClose }: { onClose: () => void }) {
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState(0);
 
-  const hits = useMemo(() => fuzzyFilter(query, files, 12), [query, files]);
+  // Matches the display title and the real path both.
+  const hits = useMemo(
+    () => fuzzyFilterBy(query, files, (f) => [f.title, f.rel], 12),
+    [query, files],
+  );
   const clamped = Math.min(selected, Math.max(hits.length - 1, 0));
 
   const openHit = (rel: string) => {
@@ -22,7 +27,7 @@ export function QuickSwitcher({ onClose }: { onClose: () => void }) {
   const onKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "ArrowDown") setSelected(Math.min(clamped + 1, hits.length - 1));
     else if (e.key === "ArrowUp") setSelected(Math.max(clamped - 1, 0));
-    else if (e.key === "Enter" && hits[clamped] !== undefined) openHit(hits[clamped]);
+    else if (e.key === "Enter" && hits[clamped] !== undefined) openHit(hits[clamped].rel);
     else return;
     e.preventDefault();
   };
@@ -41,15 +46,16 @@ export function QuickSwitcher({ onClose }: { onClose: () => void }) {
           }}
         />
         <ul className="switcher-list">
-          {hits.map((rel, i) => (
-            <li key={rel}>
+          {hits.map((hit, i) => (
+            <li key={hit.rel}>
               <button
                 type="button"
                 className={i === clamped ? "selected" : ""}
                 onMouseEnter={() => setSelected(i)}
-                onClick={() => openHit(rel)}
+                onClick={() => openHit(hit.rel)}
               >
-                {rel}
+                {hit.title ?? stripExt(hit.rel.split("/").pop() ?? hit.rel)}
+                <span className="menu-path">{hit.rel}</span>
               </button>
             </li>
           ))}

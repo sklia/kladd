@@ -20,8 +20,13 @@
 }
 
 .cm-editor .cm-content {
-  max-width: 44rem;
+  /* A fixed column: content length never affects where the text sits, so
+     revealing markdown marks can't shift the page sideways. Shrinks with
+     the pane; its own side padding is the minimum gutter. */
+  width: 44rem;
+  max-width: 100%;
   flex-grow: 0;
+  flex-shrink: 1;
   padding: 3rem 1.5rem;
   caret-color: var(--fg);
 }

@@ -24,6 +24,28 @@ export function fuzzyScore(query: string, target: string): number | null {
   return score;
 }
 
+/** Filter and rank items with several searchable strings each (display
+ * title AND file path); an item scores as its best-matching key. */
+export function fuzzyFilterBy<T>(
+  query: string,
+  items: readonly T[],
+  keys: (item: T) => readonly (string | undefined)[],
+  limit = 50,
+): T[] {
+  const scored: [number, T][] = [];
+  for (const item of items) {
+    let best: number | null = null;
+    for (const key of keys(item)) {
+      if (key === undefined) continue;
+      const score = fuzzyScore(query, key);
+      if (score !== null && (best === null || score > best)) best = score;
+    }
+    if (best !== null) scored.push([best, item]);
+  }
+  scored.sort((a, b) => b[0] - a[0]);
+  return scored.slice(0, limit).map(([, item]) => item);
+}
+
 export function fuzzyFilter(query: string, targets: readonly string[], limit = 50): string[] {
   const scored: [number, string][] = [];
   for (const target of targets) {

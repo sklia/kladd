@@ -12,6 +12,9 @@ import "./theme.css";
 function freshState(path: string, doc: string): EditorState {
   return EditorState.create({
     doc,
+    // A brand-new note is exactly "# ": put the caret after it so the
+    // heading is the first thing typed.
+    selection: doc === "# " ? { anchor: doc.length } : undefined,
     extensions: [
       minimalSetup,
       markdown({ base: markdownLanguage, codeLanguages: languages }),

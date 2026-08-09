@@ -25,8 +25,7 @@ export async function createEntry(
   return null;
 }
 
-export async function renameEntry(from: string, newName: string): Promise<string | null> {
-  const to = `${parentDir(from)}/${newName}`;
+async function movePath(from: string, to: string): Promise<string | null> {
   await flushSavesUnder(from); // settle writes before paths move
   try {
     await invoke("rename_path", { from, to });
@@ -37,6 +36,17 @@ export async function renameEntry(from: string, newName: string): Promise<string
   useWorkspace.getState().setSelected(to);
   await useWorkspace.getState().refreshChanged([from, to]);
   return null;
+}
+
+export function renameEntry(from: string, newName: string): Promise<string | null> {
+  return movePath(from, `${parentDir(from)}/${newName}`);
+}
+
+/** Drag-and-drop move: same machinery as rename, different destination. */
+export function moveEntry(from: string, toDir: string): Promise<string | null> {
+  const to = `${toDir}/${from.split("/").pop()}`;
+  if (to === from) return Promise.resolve(null);
+  return movePath(from, to);
 }
 
 export async function deleteEntry(path: string): Promise<string | null> {
