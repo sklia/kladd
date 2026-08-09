@@ -55,6 +55,7 @@ The bar: opens instantly, edits like Obsidian, never fights an agent.
 - Tabs.
 - Quick switcher (cmd+P fuzzy file search).
 - Native menus and platform-standard shortcuts on both OSes.
+- Full keyboard navigation: every action reachable without a mouse (tree, tabs, menus, dialogs). Known gaps: title-bar menu and file tree lack arrow-key navigation.
 - Session restore: reopen last folder and tabs on launch.
 - Settings window on cmd+, : one clean, well-organized pane that grows with the app. Few settings at v0.1 is a feature.
 - System light/dark, system fonts, no theming engine.
@@ -122,7 +123,7 @@ Ordered. Nothing here starts before v0.1 ships.
 
 ## Considered and dropped
 
-So we don't relitigate: KaTeX math, vim keybindings, file templates, footnotes, print support (folded into export if it ever happens), presentation mode, relative-link autocomplete/validation, menu bar quick note.
+So we don't relitigate: KaTeX math, vim keybindings, file templates, footnotes, print support (folded into export if it ever happens), presentation mode, relative-link autocomplete/validation, menu bar quick note, shadcn/styled component libraries (components are ours, built on tokens.css; headless primitives like Radix/Base UI may be reconsidered narrowly for menu/dialog a11y if hand-rolled keyboard handling becomes a burden).
 
 ## Non-goals
 

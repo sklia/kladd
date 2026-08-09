@@ -9,6 +9,7 @@ refine what you and your agents write.
 - Files on disk are the only truth. No hidden state, no lock-in, no sidecar
   metadata. Everything must render the same on GitHub.
 - Never interrupt. No dialogs, prompts, or conflicts the user didn't ask for.
+- Everything works without a mouse. Every action reachable by keyboard.
 - Motion is feedback, not decoration. Subtle and fast (transform/opacity,
   never blocking input, honors reduced-motion). Done right it makes the app
   feel faster, not slower.
