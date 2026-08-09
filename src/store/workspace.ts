@@ -1,6 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
 import { create } from "zustand";
+import { parentDir } from "../lib/tree.ts";
 import { useTabs } from "./tabs.ts";
 
 export interface DirEntry {
@@ -20,6 +21,13 @@ function loadRecents(): string[] {
   }
 }
 
+export interface TreeEditing {
+  kind: "rename" | "new-file" | "new-dir";
+  /** Path being renamed, or the directory receiving the new entry. */
+  target: string;
+  error?: string;
+}
+
 interface WorkspaceState {
   folder: string | null;
   folderName: string;
@@ -29,6 +37,15 @@ interface WorkspaceState {
   expanded: Set<string>;
   /** All files under folder, relative paths, for the quick switcher. */
   files: string[];
+  /** Tree row selection (keyboard nav + file op target). */
+  selected: string | null;
+  setSelected: (path: string | null) => void;
+  /** Active inline edit row in the tree, if any. */
+  editing: TreeEditing | null;
+  setEditing: (editing: TreeEditing | null) => void;
+  /** Begin an inline edit: rename the selection, or create inside it
+   * (a selected file targets its parent directory; nothing targets root). */
+  startEdit: (kind: TreeEditing["kind"]) => Promise<void>;
   openFolder: (path: string) => Promise<void>;
   pickFolder: () => Promise<void>;
   toggleDir: (path: string) => Promise<void>;
@@ -43,6 +60,26 @@ export const useWorkspace = create<WorkspaceState>()((set, get) => ({
   entries: {},
   expanded: new Set(),
   files: [],
+  selected: null,
+  setSelected: (selected) => set({ selected }),
+  editing: null,
+  setEditing: (editing) => set({ editing }),
+
+  startEdit: async (kind) => {
+    const { folder, selected } = get();
+    if (folder === null) return;
+    if (kind === "rename") {
+      if (selected !== null) set({ editing: { kind, target: selected } });
+      return;
+    }
+    let dir = folder;
+    if (selected !== null) {
+      const entry = get().entries[parentDir(selected)]?.find((e) => e.path === selected);
+      dir = entry?.isDir === true ? selected : parentDir(selected);
+    }
+    if (dir !== folder && !get().expanded.has(dir)) await get().toggleDir(dir);
+    set({ editing: { kind, target: dir } });
+  },
 
   openFolder: async (path) => {
     useTabs.getState().closeAll();
@@ -55,6 +92,8 @@ export const useWorkspace = create<WorkspaceState>()((set, get) => ({
       entries: { [path]: await invoke<DirEntry[]>("read_dir", { path }) },
       expanded: new Set(),
       files: [],
+      selected: null,
+      editing: null,
     });
     void invoke("watch_workspace", { root: path });
     // The full walk can be slow on huge folders; don't block the tree on it.

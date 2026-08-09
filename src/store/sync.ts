@@ -4,14 +4,14 @@ import { Annotation } from "@codemirror/state";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { activeEditor, cachedEditorState, cacheEditorState } from "../editor/stateCache.ts";
 import { minimalDiff } from "../lib/minimalDiff.ts";
+import { isUnder } from "../lib/tree.ts";
+import { useSettings } from "./settings.ts";
 import { initialDocFor, refreshInitialDoc, useTabs } from "./tabs.ts";
 import { useWorkspace } from "./workspace.ts";
 
 /** Marks transactions produced by external reloads, so the updateListener
  * doesn't schedule a save for content that just came from disk. */
 export const syncAnnotation = Annotation.define<boolean>();
-
-const SAVE_DELAY_MS = 750;
 
 const pending = new Map<string, ReturnType<typeof setTimeout>>();
 
@@ -38,7 +38,7 @@ export function scheduleSave(path: string) {
   clearTimeout(pending.get(path));
   pending.set(
     path,
-    setTimeout(() => void saveNow(path), SAVE_DELAY_MS),
+    setTimeout(() => void saveNow(path), useSettings.getState().autosaveDelayMs),
   );
 }
 
@@ -53,6 +53,23 @@ export function flushSave(path: string): Promise<void> {
 
 export function flushAllSaves(): Promise<void> {
   return Promise.all([...pending.keys()].map(flushSave)).then(() => undefined);
+}
+
+/** Before a rename: settle pending writes so nothing writes to old paths. */
+export function flushSavesUnder(prefix: string): Promise<void> {
+  return Promise.all([...pending.keys()].filter((p) => isUnder(p, prefix)).map(flushSave)).then(
+    () => undefined,
+  );
+}
+
+/** Before a delete: pending saves must not resurrect the trashed file. */
+export function cancelSavesUnder(prefix: string) {
+  for (const [path, timer] of [...pending]) {
+    if (isUnder(path, prefix)) {
+      clearTimeout(timer);
+      pending.delete(path);
+    }
+  }
 }
 
 async function reloadFromDisk(path: string) {

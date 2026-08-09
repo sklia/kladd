@@ -20,7 +20,7 @@ Not another notes app. The gap it fills:
 | License         | MIT                                                         | No code is borrowed from GPL projects, so nothing forces copyleft. MIT is the convention for open-source dev tools                                                                                                                                                                                                                      |
 | Tooling         | Vite+ (`vite-plus`)                                         | VoidZero's unified toolchain: Vite, Vitest, Oxc-based lint/format, package management in one CLI. MIT, actively developed, pre-1.0 (accept some churn). Fallback is plain Vite + Biome + pnpm, a config change not a rewrite                                                                                                            |
 | Rust crates     | `notify` for file watching; `grep`/`ignore` for v0.4 search | The standards; ripgrep's own internals for search rather than shelling out                                                                                                                                                                                                                                                              |
-| Design language | Tokens in `src/tokens.css`                                  | System fonts, system light/dark, platform-conventional details. Color and motion tokens (durations, easings, honors reduced-motion) in one file; Tailwind 4 utilities consume them. No component library                                                                                                                                |
+| Design language | Tokens in `src/tokens.css`                                  | Linear-style crisp chrome around a calm editor pane. System fonts, light/dark via `light-dark()` with a settings override. Color, shape, and motion tokens (durations, easings, honors reduced-motion) in one file; Tailwind 4 utilities consume them. Components are ours (Menu, Overlay primitives). No component library             |
 | File model      | Folder-first                                                | Open any folder or single file. The folder is the state; no vault, no sidecar metadata. Git-ness is detected, not declared: a folder with `.git` gets git affordances, a plain folder doesn't. A GitHub repo is just a cloned folder                                                                                                    |
 | Git             | Commit/push/pull only, via system `git` binary              | Shelling out inherits the user's SSH signing, hooks, and credential helpers for free. No branch UI, no staging concept, no merge tooling. Git-generic (works with GitLab/ADO too); GitHub-specific sugar comes later                                                                                                                    |
 | Markdown        | GFM + YAML frontmatter + Mermaid                            | Exactly what AI tools emit and GitHub renders. No wikilinks: they drag the vault model back in                                                                                                                                                                                                                                          |
@@ -55,7 +55,8 @@ The bar: opens instantly, edits like Obsidian, never fights an agent.
 - Tabs.
 - Quick switcher (cmd+P fuzzy file search).
 - Native menus and platform-standard shortcuts on both OSes.
-- Full keyboard navigation: every action reachable without a mouse (tree, tabs, menus, dialogs). Known gaps: title-bar menu and file tree lack arrow-key navigation.
+- File operations: new file (⌘N), new folder, rename, delete-to-trash — inline in the tree, no dialogs.
+- Full keyboard navigation: every action reachable without a mouse (tree, tabs, menus, dialogs).
 - Session restore: reopen last folder and tabs on launch.
 - Settings window on cmd+, : one clean, well-organized pane that grows with the app. Few settings at v0.1 is a feature.
 - System light/dark, system fonts, no theming engine.
@@ -71,8 +72,8 @@ The bar: opens instantly, edits like Obsidian, never fights an agent.
 1. Editor spike: CM6 live preview standing alone in a browser tab, written from scratch (writer-computer and other open implementations as inspiration for the approach, not source). Kill or commit based on this.
 2. Tauri shell: folder open, tree, tabs, quick switcher, folder switching.
 3. Save/watch loop: auto-save + file watching + cursor-preserving reload. Test by pointing Claude Code at an open file.
-4. Rendering completeness: frontmatter, Mermaid, callouts, task-list toggling.
-5. Platform polish: menus, shortcuts, light/dark, settings window.
+4. Daily drivability (done, swapped ahead of rendering): file operations, settings (theme, autosave delay), keyboard-complete tree and menus, crisp UI pass.
+5. Rendering completeness: frontmatter, Mermaid, callouts, tables, find & replace, raw source toggle.
 6. Release pipeline: signing, notarization, updater, cask.
 
 ## Foundation (in place)

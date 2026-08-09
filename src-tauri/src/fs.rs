@@ -83,6 +83,39 @@ pub fn write_file_atomic(path: PathBuf, contents: String) -> Result<(), String> 
     })
 }
 
+/// Fails if the file already exists: creating over content is a data-loss
+/// path, and the frontend validates names before calling.
+#[tauri::command]
+pub fn create_file(path: PathBuf) -> Result<(), String> {
+    if path.exists() {
+        return Err("already exists".into());
+    }
+    std::fs::write(&path, "").map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub fn create_dir(path: PathBuf) -> Result<(), String> {
+    if path.exists() {
+        return Err("already exists".into());
+    }
+    std::fs::create_dir(&path).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub fn rename_path(from: PathBuf, to: PathBuf) -> Result<(), String> {
+    if to.exists() {
+        return Err("already exists".into());
+    }
+    std::fs::rename(&from, &to).map_err(|e| e.to_string())
+}
+
+/// To the OS trash, never permanent: the only delete that needs no
+/// confirmation dialog.
+#[tauri::command]
+pub fn delete_path(path: PathBuf) -> Result<(), String> {
+    trash::delete(&path).map_err(|e| e.to_string())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

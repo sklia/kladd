@@ -21,6 +21,16 @@ export function clearEditorStates() {
   states.clear();
 }
 
+/** Rename support: move cached states under a renamed file or directory. */
+export function remapEditorStates(from: string, to: string) {
+  for (const [key, state] of [...states]) {
+    if (key === from || key.startsWith(`${from}/`)) {
+      states.delete(key);
+      states.set(to + key.slice(from.length), state);
+    }
+  }
+}
+
 /** The one live view and which tab it currently shows, so the sync layer
  * can read the freshest doc and dispatch external reloads. */
 let active: { path: string; view: EditorView } | null = null;

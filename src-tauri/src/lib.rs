@@ -81,6 +81,10 @@ pub fn run() {
             fs::list_files,
             fs::read_file,
             fs::write_file_atomic,
+            fs::create_file,
+            fs::create_dir,
+            fs::rename_path,
+            fs::delete_path,
             watch::watch_workspace,
             confirm_quit
         ])

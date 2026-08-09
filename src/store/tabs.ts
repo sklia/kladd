@@ -1,6 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
 import { create } from "zustand";
-import { clearEditorStates, dropEditorState } from "../editor/stateCache.ts";
+import { clearEditorStates, dropEditorState, remapEditorStates } from "../editor/stateCache.ts";
+import { isUnder } from "../lib/tree.ts";
 import { flushAllSaves, flushSave } from "./sync.ts";
 
 export interface Tab {
@@ -30,6 +31,11 @@ interface TabsState {
   closeTab: (path: string) => void;
   setActive: (path: string) => void;
   closeAll: () => void;
+  /** After a rename: carry tabs, editor states, and docs to the new path.
+   * Prefix-aware, so renaming a directory moves everything under it. */
+  remapPath: (from: string, to: string) => void;
+  /** Close tabs under a deleted path without flushing saves. */
+  closeUnder: (prefix: string) => void;
 }
 
 export const useTabs = create<TabsState>()((set, get) => ({
@@ -62,5 +68,35 @@ export const useTabs = create<TabsState>()((set, get) => ({
     initialDocs.clear();
     clearEditorStates();
     set({ tabs: [], active: null });
+  },
+
+  remapPath: (from, to) => {
+    const move = (path: string) => to + path.slice(from.length);
+    for (const [key, doc] of [...initialDocs]) {
+      if (isUnder(key, from)) {
+        initialDocs.delete(key);
+        initialDocs.set(move(key), doc);
+      }
+    }
+    remapEditorStates(from, to);
+    const tabs = get().tabs.map((t) =>
+      isUnder(t.path, from)
+        ? { path: move(t.path), name: move(t.path).split("/").pop() ?? t.name }
+        : t,
+    );
+    const { active } = get();
+    set({ tabs, active: active !== null && isUnder(active, from) ? move(active) : active });
+  },
+
+  closeUnder: (prefix) => {
+    const closing = get().tabs.filter((t) => isUnder(t.path, prefix));
+    for (const tab of closing) {
+      initialDocs.delete(tab.path);
+      dropEditorState(tab.path);
+    }
+    const tabs = get().tabs.filter((t) => !isUnder(t.path, prefix));
+    let { active } = get();
+    if (active !== null && isUnder(active, prefix)) active = tabs.at(-1)?.path ?? null;
+    set({ tabs, active });
   },
 }));

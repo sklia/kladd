@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { fuzzyFilter } from "../lib/fuzzy.ts";
 import { useTabs } from "../store/tabs.ts";
 import { useWorkspace } from "../store/workspace.ts";
+import { Overlay } from "./Overlay.tsx";
 
 export function QuickSwitcher({ onClose }: { onClose: () => void }) {
   const folder = useWorkspace((s) => s.folder);
@@ -19,8 +20,7 @@ export function QuickSwitcher({ onClose }: { onClose: () => void }) {
   };
 
   const onKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Escape") onClose();
-    else if (e.key === "ArrowDown") setSelected(Math.min(clamped + 1, hits.length - 1));
+    if (e.key === "ArrowDown") setSelected(Math.min(clamped + 1, hits.length - 1));
     else if (e.key === "ArrowUp") setSelected(Math.max(clamped - 1, 0));
     else if (e.key === "Enter" && hits[clamped] !== undefined) openHit(hits[clamped]);
     else return;
@@ -28,9 +28,8 @@ export function QuickSwitcher({ onClose }: { onClose: () => void }) {
   };
 
   return (
-    <>
-      <div className="menu-backdrop" onClick={onClose} />
-      <div className="switcher" onKeyDown={onKeyDown}>
+    <Overlay onClose={onClose} className="switcher">
+      <div onKeyDown={onKeyDown}>
         <input
           autoFocus
           className="switcher-input"
@@ -56,6 +55,6 @@ export function QuickSwitcher({ onClose }: { onClose: () => void }) {
           ))}
         </ul>
       </div>
-    </>
+    </Overlay>
   );
 }

@@ -1,13 +1,25 @@
-/* Design tokens: the single source for color and motion. Everything in the
-   app (plain CSS and Tailwind utilities alike) draws from these. */
+/* Design tokens: the single source for color, shape, and motion.
+   light-dark() keys everything off color-scheme, so the settings theme
+   override is one data attribute — no duplicated palettes. */
 
 :root {
-  --bg: #ffffff;
-  --fg: #1f2328;
-  --muted: #636c76;
-  --accent: #0969da;
-  --code-bg: #f6f8fa;
-  --rule: #d1d9e0;
+  color-scheme: light dark;
+
+  /* Color */
+  --bg: light-dark(#fcfcfc, #161618);
+  --surface: light-dark(#fafafa, #1d1d20); /* sidebar, tab bar */
+  --raised: light-dark(#fcfcfc, #232327); /* overlays, menus, active tab */
+  --fg: light-dark(#1a1a1e, #ececee);
+  --muted: light-dark(#6e6e78, #8f8f98);
+  --accent: light-dark(#4c6ef5, #7b93ff);
+  --accent-soft: color-mix(in srgb, var(--accent) 12%, transparent);
+  --danger: light-dark(#d1242f, #ff7373);
+  --code-bg: light-dark(#f1f1f3, #232327);
+  --rule: light-dark(#e5e5e9, #313136);
+
+  /* Shape */
+  --radius: 6px;
+  --radius-lg: 10px;
 
   /* Motion: fast and subtle, transform/opacity only. */
   --motion-fast: 120ms;
@@ -15,15 +27,11 @@
   --motion-ease: cubic-bezier(0.2, 0, 0, 1);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #1c1c1e;
-    --fg: #e6e6e8;
-    --muted: #8e8e93;
-    --accent: #58a6ff;
-    --code-bg: #2a2a2d;
-    --rule: #3a3a3d;
-  }
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -33,13 +41,17 @@
   }
 }
 
-/* Expose tokens to Tailwind utilities (bg-bg, text-fg, border-rule, …). */
+/* Expose tokens to Tailwind utilities (bg-surface, text-muted, …). */
 @theme inline {
   --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-raised: var(--raised);
   --color-fg: var(--fg);
   --color-muted: var(--muted);
   --color-accent: var(--accent);
+  --color-danger: var(--danger);
   --color-code: var(--code-bg);
   --color-rule: var(--rule);
+  --radius-chrome: var(--radius);
   --ease-swift: var(--motion-ease);
 }
