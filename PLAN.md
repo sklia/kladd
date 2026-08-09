@@ -23,7 +23,7 @@ Not another notes app. The gap it fills:
 | Design language | Tokens in `src/tokens.css`                                  | Linear-style crisp chrome around a calm editor pane. System fonts, light/dark via `light-dark()` with a settings override. Color, shape, and motion tokens (durations, easings, honors reduced-motion) in one file; Tailwind 4 utilities consume them. Components are ours (Menu, Overlay primitives). No component library             |
 | File model      | Folder-first                                                | Open any folder or single file. The folder is the state; no vault, no sidecar metadata. Git-ness is detected, not declared: a folder with `.git` gets git affordances, a plain folder doesn't. A GitHub repo is just a cloned folder                                                                                                    |
 | Git             | Commit/push/pull only, via system `git` binary              | Shelling out inherits the user's SSH signing, hooks, and credential helpers for free. No branch UI, no staging concept, no merge tooling. Git-generic (works with GitLab/ADO too); GitHub-specific sugar comes later                                                                                                                    |
-| Markdown        | GFM + YAML frontmatter + Mermaid                            | Exactly what AI tools emit and GitHub renders. No wikilinks: they drag the vault model back in                                                                                                                                                                                                                                          |
+| Markdown        | GFM + YAML frontmatter                                      | Exactly what AI tools emit and GitHub renders. No wikilinks: they drag the vault model back in. Mermaid moved to the roadmap (unused day-to-day, and it would be the heaviest dependency in the app)                                                                                                                                    |
 | Save model      | Auto-save with atomic writes                                | Always safe to close. Combined with file watching, editor and agents converge on disk state. Same-second conflicts resolve last-writer-wins (acceptable for v1)                                                                                                                                                                         |
 | AI angle        | Live external edits + agent-friendly rendering              | No built-in chat. The app is the viewing pane for agent work, not another AI client                                                                                                                                                                                                                                                     |
 | Distribution    | Open-source, GitHub releases, Tauri updater                 | Apple signing from day one (account exists). Windows signing deferred until there are Windows users (Azure Trusted Signing when needed)                                                                                                                                                                                                 |
@@ -37,7 +37,6 @@ The bar: opens instantly, edits like Obsidian, never fights an agent.
 - CodeMirror 6 live preview: raw markdown on the active line, rendered text everywhere else. This is the make-or-break component; spike it first before building anything around it.
 - GFM: tables, task lists (clickable checkboxes), strikethrough, autolinks, fenced code with syntax highlighting.
 - YAML frontmatter rendered as a tidy collapsed block.
-- Mermaid diagrams rendered inline. The mermaid library is the heaviest dependency in the app: lazy-load it only when a document contains a diagram, so launch stays instant.
 - GitHub callouts (`> [!NOTE]`, `> [!WARNING]`, …) rendered as styled blocks.
 - In-file find & replace.
 - Raw source mode toggle.
@@ -74,7 +73,7 @@ The bar: opens instantly, edits like Obsidian, never fights an agent.
 2. Tauri shell: folder open, tree, tabs, quick switcher, folder switching.
 3. Save/watch loop: auto-save + file watching + cursor-preserving reload. Test by pointing Claude Code at an open file.
 4. Daily drivability (done, swapped ahead of rendering): file operations, settings (theme, autosave delay), keyboard-complete tree and menus, crisp UI pass.
-5. Rendering completeness: frontmatter, Mermaid, callouts, tables, find & replace, raw source toggle.
+5. Rendering completeness: frontmatter, callouts, tables, find & replace, raw source toggle.
 6. Release pipeline: signing, notarization, updater, cask.
 
 ## Foundation (in place)
@@ -106,6 +105,7 @@ Ordered. Nothing here starts before v0.1 ships.
 - **v0.3 — Git integration.** Dirty-state indicator; commit dialog with message field and changed-file list (uncheck to exclude); Commit / Commit & Push; pull/sync; "Clone from URL…"; "Initialize repository" on a plain folder; "Open on GitHub". All via the system `git` binary.
 - **v0.4 — Folder-wide search.** Ripgrep-backed content search across the open folder.
 - **Later, in rough priority:**
+  - Mermaid diagrams rendered inline (lazy-loaded only when a document contains one, so launch stays instant; the mermaid library would be the heaviest dependency in the app).
   - Heading minimap: subtle tick lines along the editor edge, one per heading, sized by level. Hovering shows the heading text in a popover; click jumps. No panel, no chrome. Best single feature for long agent-written docs.
   - GitHub sugar: OAuth device flow, "clone from my repos" picker, one-click "publish folder to GitHub".
   - Agent integration, t3code-style: drive a coding agent from within the app. Claude Code first, others maybe later. AI-generated commit messages come from this, not from raw provider API keys.

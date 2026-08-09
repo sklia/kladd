@@ -14,6 +14,19 @@ class BulletWidget extends WidgetType {
 
 export const bullet = new BulletWidget();
 
+class HrWidget extends WidgetType {
+  eq() {
+    return true;
+  }
+  toDOM() {
+    const span = document.createElement("span");
+    span.className = "cm-hr";
+    return span;
+  }
+}
+
+export const hr = new HrWidget();
+
 export class CheckboxWidget extends WidgetType {
   checked: boolean;
   constructor(checked: boolean) {

@@ -1,25 +1,40 @@
 import { markdown, markdownLanguage } from "@codemirror/lang-markdown";
 import { languages } from "@codemirror/language-data";
+import { search, searchKeymap } from "@codemirror/search";
 import { EditorState } from "@codemirror/state";
-import { EditorView } from "@codemirror/view";
+import { EditorView, keymap } from "@codemirror/view";
 import { minimalSetup } from "codemirror";
 import { useEffect, useRef } from "react";
 import { scheduleSave, syncAnnotation } from "../store/sync.ts";
+import { frontmatter, frontmatterRange } from "./frontmatter.ts";
 import { livePreview } from "./livePreview.ts";
+import { renderMode, toggleRawMode } from "./rawMode.ts";
 import { cachedEditorState, cacheEditorState, setActiveEditor } from "./stateCache.ts";
+import { tables } from "./tables.ts";
 import "./theme.css";
+
+const rendered = [livePreview, frontmatter, tables];
+
+/** First open: caret at the start of content. A brand-new note ("# ")
+ * gets it after the hash so the heading is the first thing typed; files
+ * with frontmatter start below it, never against the collapsed block. */
+function openingAnchor(doc: string): number {
+  if (doc === "# ") return doc.length;
+  const fm = frontmatterRange(doc.slice(0, 4096));
+  return fm === null ? 0 : Math.min(fm.to + 1, doc.length);
+}
 
 function freshState(path: string, doc: string): EditorState {
   return EditorState.create({
     doc,
-    // A brand-new note is exactly "# ": put the caret after it so the
-    // heading is the first thing typed.
-    selection: doc === "# " ? { anchor: doc.length } : undefined,
+    selection: { anchor: openingAnchor(doc) },
     extensions: [
       minimalSetup,
       markdown({ base: markdownLanguage, codeLanguages: languages }),
       EditorView.lineWrapping,
-      livePreview,
+      renderMode.of(rendered),
+      search({ top: true }),
+      keymap.of([...searchKeymap, { key: "Mod-e", run: (v) => toggleRawMode(v, rendered) }]),
       // Autosave: user edits schedule a debounced save; reloads from disk
       // (marked with syncAnnotation) must not save what we just read.
       EditorView.updateListener.of((update) => {

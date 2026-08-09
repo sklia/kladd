@@ -65,6 +65,13 @@ describe("live preview reveal", () => {
     ]);
   });
 
+  it("never decorates inside frontmatter (YAML is not markdown)", () => {
+    const doc = "---\ntitle: [x]\n# comment\n---\n\ntext **b**";
+    const hidden = hiddenRanges(doc, doc.length - 8);
+    // The fences, bracket "link", and "# comment" all stay raw.
+    expect(hidden.every(([from]) => from > doc.indexOf("\n---") + 4)).toBe(true);
+  });
+
   it("promotes the whole blockquote when one line is active", () => {
     const doc = "> one\n> two\n\nelsewhere";
     expect(hiddenRanges(doc, 2)).toEqual([]);

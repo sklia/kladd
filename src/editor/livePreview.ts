@@ -8,7 +8,9 @@ import {
   type ViewUpdate,
   type WidgetType,
 } from "@codemirror/view";
-import { bullet, CheckboxWidget, toggleTask } from "./widgets.ts";
+import { calloutLine, calloutTitle, calloutType } from "./callouts.ts";
+import { frontmatterRange } from "./frontmatter.ts";
+import { bullet, CheckboxWidget, hr, toggleTask } from "./widgets.ts";
 
 // Live preview: the document is always plain markdown; everything below is
 // view-layer decoration. Raw syntax is revealed on lines the selection
@@ -34,6 +36,7 @@ const lines = {
   h6: Decoration.line({ class: "cm-h6" }),
   blockquote: Decoration.line({ class: "cm-blockquote" }),
   codeblock: Decoration.line({ class: "cm-codeblock" }),
+  frontmatterRaw: Decoration.line({ class: "cm-frontmatter-raw" }),
 };
 
 function activeLines(state: EditorState): Set<number> {
@@ -106,12 +109,23 @@ export function buildDecorations(
     for (let n = first; n <= last; n++) deco.push(deco_.range(doc.line(n).from));
   };
 
+  // Frontmatter is YAML, not markdown: no live-preview decoration applies
+  // inside it (its `---` would render as rules, its lists as links). It
+  // gets a uniform raw style instead; the frontmatter field's widget
+  // covers it whenever the selection is elsewhere.
+  const fm = frontmatterRange(doc.sliceString(0, 4096));
+  const fmEnd = fm?.to ?? 0;
+  if (fm !== null) {
+    eachLine(fm.from, fm.to, lines.frontmatterRaw);
+  }
+
   for (const range of ranges) {
     syntaxTree(state).iterate({
       from: range.from,
       to: range.to,
       enter(node) {
         const { name, from, to } = node;
+        if (to <= fmEnd) return false; // inside frontmatter: leave raw
         // Images share URL/LinkMark node names with links; out of scope, stay raw.
         if (name === "Image") return false;
 
@@ -164,10 +178,24 @@ export function buildDecorations(
             return;
           }
 
-          case "Blockquote":
+          case "Blockquote": {
             promote(from, to);
-            eachLine(from, to, lines.blockquote);
+            // GitHub callout: "> [!NOTE]" alone on the quote's first line.
+            const firstLine = doc.lineAt(from);
+            const content = /^\s*>\s?(.*)$/.exec(firstLine.text);
+            const type = content === null ? null : calloutType(content[1]);
+            if (type === null) {
+              eachLine(from, to, lines.blockquote);
+              return;
+            }
+            eachLine(from, to, calloutLine(type));
+            if (!lineIsActive(from, to)) {
+              const markerFrom = firstLine.from + firstLine.text.indexOf("[!");
+              deco.push(calloutTitle(type).range(markerFrom, firstLine.to));
+              atomic.push(hidden.range(markerFrom, firstLine.to));
+            }
             return;
+          }
           case "QuoteMark":
             if (!lineIsActive(from, to)) hide(from, pastTrailingSpace(to));
             return;
@@ -175,6 +203,10 @@ export function buildDecorations(
           case "FencedCode":
             promote(from, to);
             eachLine(from, to, lines.codeblock);
+            return;
+
+          case "HorizontalRule":
+            if (!lineIsActive(from, to)) replaceWith(from, to, hr);
             return;
 
           case "ListMark": {
