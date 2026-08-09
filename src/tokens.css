@@ -1,0 +1,45 @@
+/* Design tokens: the single source for color and motion. Everything in the
+   app (plain CSS and Tailwind utilities alike) draws from these. */
+
+:root {
+  --bg: #ffffff;
+  --fg: #1f2328;
+  --muted: #636c76;
+  --accent: #0969da;
+  --code-bg: #f6f8fa;
+  --rule: #d1d9e0;
+
+  /* Motion: fast and subtle, transform/opacity only. */
+  --motion-fast: 120ms;
+  --motion-medium: 180ms;
+  --motion-ease: cubic-bezier(0.2, 0, 0, 1);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1c1c1e;
+    --fg: #e6e6e8;
+    --muted: #8e8e93;
+    --accent: #58a6ff;
+    --code-bg: #2a2a2d;
+    --rule: #3a3a3d;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion-fast: 0ms;
+    --motion-medium: 0ms;
+  }
+}
+
+/* Expose tokens to Tailwind utilities (bg-bg, text-fg, border-rule, …). */
+@theme inline {
+  --color-bg: var(--bg);
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-code: var(--code-bg);
+  --color-rule: var(--rule);
+  --ease-swift: var(--motion-ease);
+}

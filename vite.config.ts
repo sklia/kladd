@@ -1,5 +1,6 @@
-import { defineConfig, lazyPlugins } from "vite-plus";
+import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
+import { defineConfig, lazyPlugins } from "vite-plus";
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -27,5 +28,20 @@ export default defineConfig({
       },
     ],
   },
-  plugins: lazyPlugins(() => [react()]),
+  plugins: lazyPlugins(() => [react(), tailwindcss()]),
+
+  // Tauri: fixed port, keep Rust errors visible, don't watch src-tauri
+  clearScreen: false,
+  server: {
+    port: 5173,
+    strictPort: true,
+    watch: {
+      ignored: ["**/src-tauri/**"],
+    },
+  },
+  envPrefix: ["VITE_", "TAURI_ENV_"],
+  build: {
+    // WKWebView floor on macOS, WebView2 on Windows
+    target: process.env.TAURI_ENV_PLATFORM === "windows" ? "chrome105" : "safari13",
+  },
 });

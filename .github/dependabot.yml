@@ -9,7 +9,7 @@ updates:
         patterns: ["*"]
 
   - package-ecosystem: npm
-    directory: /spike
+    directory: /
     schedule:
       interval: monthly
     groups:
