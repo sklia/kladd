@@ -1,0 +1,25 @@
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      actions:
+        patterns: ["*"]
+
+  - package-ecosystem: npm
+    directory: /spike
+    schedule:
+      interval: monthly
+    groups:
+      # The editor stack moves in lockstep; one PR for all of it.
+      codemirror:
+        patterns: ["@codemirror/*", "@lezer/*", "codemirror"]
+      react:
+        patterns: ["react", "react-dom", "@types/react*"]
+      tooling:
+        patterns: ["vite*", "@vitejs/*", "typescript", "@types/node"]
+      # Catch-all: anything ungrouped would otherwise get its own PR.
+      everything-else:
+        patterns: ["*"]
