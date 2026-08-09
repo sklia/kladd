@@ -1,0 +1,5 @@
+[tools]
+node = "24"
+# aqua backend lacks macos-arm64 assets for pnpm 11.x, hence npm backend
+"npm:pnpm" = "11.20.0"
+"npm:vite-plus" = "0.2.8"

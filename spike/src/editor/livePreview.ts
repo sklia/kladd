@@ -6,8 +6,9 @@ import {
   EditorView,
   ViewPlugin,
   type ViewUpdate,
-  WidgetType,
+  type WidgetType,
 } from "@codemirror/view";
+import { bullet, CheckboxWidget, toggleTask } from "./widgets.ts";
 
 // Live preview: the document is always plain markdown; everything below is
 // view-layer decoration. Raw syntax is revealed on lines the selection
@@ -35,52 +36,6 @@ const lines = {
   codeblock: Decoration.line({ class: "cm-codeblock" }),
 };
 
-class BulletWidget extends WidgetType {
-  eq() {
-    return true;
-  }
-  toDOM() {
-    const span = document.createElement("span");
-    span.className = "cm-bullet";
-    span.textContent = "•";
-    return span;
-  }
-}
-
-class CheckboxWidget extends WidgetType {
-  checked: boolean;
-  constructor(checked: boolean) {
-    super();
-    this.checked = checked;
-  }
-  eq(other: CheckboxWidget) {
-    return other.checked === this.checked;
-  }
-  toDOM() {
-    const wrap = document.createElement("span");
-    wrap.className = "cm-task";
-    const box = document.createElement("input");
-    box.type = "checkbox";
-    box.checked = this.checked;
-    wrap.append(box);
-    return wrap;
-  }
-  ignoreEvent() {
-    return false;
-  }
-}
-
-const bullet = new BulletWidget();
-
-function toggleTask(view: EditorView, pos: number) {
-  // pos is TaskMarker.from; the char between the brackets is at pos + 1
-  const current = view.state.doc.sliceString(pos + 1, pos + 2);
-  view.dispatch({
-    changes: { from: pos + 1, to: pos + 2, insert: current === " " ? "x" : " " },
-  });
-  return true;
-}
-
 function activeLines(state: EditorState): Set<number> {
   const active = new Set<number>();
   for (const range of state.selection.ranges) {
@@ -91,8 +46,12 @@ function activeLines(state: EditorState): Set<number> {
   return active;
 }
 
-function build(view: EditorView): [DecorationSet, DecorationSet] {
-  const { state } = view;
+// Pure: state + ranges in, decorations out. The view plugin passes
+// view.visibleRanges; tests pass the whole document.
+export function buildDecorations(
+  state: EditorState,
+  ranges: readonly { from: number; to: number }[],
+): [DecorationSet, DecorationSet] {
   const { doc } = state;
   const deco: Range<Decoration>[] = [];
   const atomic: Range<Decoration>[] = [];
@@ -147,7 +106,7 @@ function build(view: EditorView): [DecorationSet, DecorationSet] {
     for (let n = first; n <= last; n++) deco.push(deco_.range(doc.line(n).from));
   };
 
-  for (const range of view.visibleRanges) {
+  for (const range of ranges) {
     syntaxTree(state).iterate({
       from: range.from,
       to: range.to,
@@ -250,11 +209,14 @@ export const livePreview = ViewPlugin.fromClass(
     decorations: DecorationSet;
     atomics: DecorationSet;
     constructor(view: EditorView) {
-      [this.decorations, this.atomics] = build(view);
+      [this.decorations, this.atomics] = buildDecorations(view.state, view.visibleRanges);
     }
     update(update: ViewUpdate) {
       if (update.docChanged || update.viewportChanged || update.selectionSet) {
-        [this.decorations, this.atomics] = build(update.view);
+        [this.decorations, this.atomics] = buildDecorations(
+          update.view.state,
+          update.view.visibleRanges,
+        );
       }
     }
   },

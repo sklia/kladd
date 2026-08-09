@@ -69,18 +69,23 @@ The bar: opens instantly, edits like Obsidian, never fights an agent.
 5. Platform polish: menus, shortcuts, light/dark, settings window.
 6. Release pipeline: signing, notarization, updater, cask.
 
-## Foundation (settle at the start of build order step 2)
+## Foundation (in place)
 
-Cheap now, expensive later. Most of it is already in the toolchain:
+Cheap now, expensive later. Most of it comes with the toolchain:
 
+- Tool versions pinned in `mise.toml` (node, pnpm, vite-plus). `mise install`
+  once per clone puts `vp` on PATH.
 - Format/lint/typecheck: `vp fmt`, `vp lint`, `vp check` (oxfmt/oxlint, zero config).
-- Tests: `vp test` (Vitest). Test behaviors that matter: the livePreview
-  decoration logic is pure enough to unit-test against an EditorState without
-  a DOM; the save/watch loop gets integration tests when it exists.
-- Pre-commit hook running `vp check` (vp create can set this up; we skipped it
-  in the spike). No pre-push hook: anything slower than a second lives in CI.
-- CI: GitHub Actions with path filters, cancel-in-progress on same-type runs,
-  CodeQL. Build both platforms on tags only; lint+test on PRs.
+- Tests: `vp test` (Vitest via `vite-plus/test`). Test behaviors that matter:
+  the livePreview decoration logic is pure (state + ranges in, decorations
+  out) and unit-tested without a DOM; the save/watch loop gets integration
+  tests when it exists.
+- Pre-commit hook (`.githooks/pre-commit`) runs `vp check` (~2s). Enable once
+  per clone: `git config core.hooksPath .githooks`. No pre-push hook:
+  anything slower than a second lives in CI.
+- CI: GitHub Actions (check + test jobs) with path filters and
+  cancel-in-progress; CodeQL on TS changes and weekly. Platform builds on
+  tags come with the release pipeline (build order step 6).
 
 ## Roadmap
 

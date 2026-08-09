@@ -17,6 +17,9 @@ refine what you and your agents write.
 ## How we build
 
 - Smallest change that works. Prefer deleting code to adding it.
+- Structure for navigation: small focused files whose names say what they
+  hold. A file creeping toward ~300 lines is the signal to split it, along a
+  natural seam, never mid-thought.
 - Build primitives once, reuse them everywhere (motion, spacing, components).
   Shared code is why the whole app feels like one thing; a second
   implementation of something that exists is a bug.
