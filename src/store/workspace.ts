@@ -32,6 +32,8 @@ interface WorkspaceState {
   openFolder: (path: string) => Promise<void>;
   pickFolder: () => Promise<void>;
   toggleDir: (path: string) => Promise<void>;
+  /** Re-read tree entries and the switcher file list after fs changes. */
+  refreshChanged: (paths: string[]) => Promise<void>;
 }
 
 export const useWorkspace = create<WorkspaceState>()((set, get) => ({
@@ -54,6 +56,7 @@ export const useWorkspace = create<WorkspaceState>()((set, get) => ({
       expanded: new Set(),
       files: [],
     });
+    void invoke("watch_workspace", { root: path });
     // The full walk can be slow on huge folders; don't block the tree on it.
     const files = await invoke<string[]>("list_files", { root: path });
     if (get().folder === path) set({ files });
@@ -79,5 +82,28 @@ export const useWorkspace = create<WorkspaceState>()((set, get) => ({
     } else {
       set({ expanded: next });
     }
+  },
+
+  refreshChanged: async (paths) => {
+    const { folder, entries } = get();
+    if (folder === null) return;
+    const parents = new Set(paths.map((p) => p.slice(0, p.lastIndexOf("/"))));
+    const reloaded = await Promise.all(
+      Object.keys(entries)
+        .filter((dir) => parents.has(dir))
+        .map(async (dir) => {
+          try {
+            return [dir, await invoke<DirEntry[]>("read_dir", { path: dir })] as const;
+          } catch {
+            return null; // directory itself was removed
+          }
+        }),
+    );
+    const files = await invoke<string[]>("list_files", { root: folder });
+    if (get().folder !== folder) return; // workspace switched mid-refresh
+    set({
+      entries: { ...get().entries, ...Object.fromEntries(reloaded.filter((r) => r !== null)) },
+      files,
+    });
   },
 }));

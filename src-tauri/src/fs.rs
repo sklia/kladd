@@ -61,3 +61,48 @@ pub fn list_files(root: PathBuf) -> Result<Vec<String>, String> {
 pub fn read_file(path: PathBuf) -> Result<String, String> {
     std::fs::read_to_string(&path).map_err(|e| e.to_string())
 }
+
+/// Write via a dot-prefixed temp file in the same directory, then rename.
+/// Same filesystem, so the rename is atomic: readers (and agents) never see
+/// a half-written file. The dot prefix keeps it out of the watcher too.
+#[tauri::command]
+pub fn write_file_atomic(path: PathBuf, contents: String) -> Result<(), String> {
+    let dir = path.parent().ok_or("path has no parent directory")?;
+    let name = path.file_name().ok_or("path has no file name")?.to_string_lossy();
+    let tmp = dir.join(format!(".{name}.kladd-tmp"));
+    let write = || -> std::io::Result<()> {
+        use std::io::Write;
+        let mut file = std::fs::File::create(&tmp)?;
+        file.write_all(contents.as_bytes())?;
+        file.sync_all()?;
+        std::fs::rename(&tmp, &path)
+    };
+    write().map_err(|e| {
+        let _ = std::fs::remove_file(&tmp);
+        e.to_string()
+    })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn atomic_write_replaces_content_and_leaves_no_temp() {
+        let dir = std::env::temp_dir().join(format!("kladd-test-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let target = dir.join("doc.md");
+        std::fs::write(&target, "old").unwrap();
+
+        write_file_atomic(target.clone(), "new content".into()).unwrap();
+
+        assert_eq!(std::fs::read_to_string(&target).unwrap(), "new content");
+        let leftovers: Vec<_> = std::fs::read_dir(&dir)
+            .unwrap()
+            .filter_map(|e| e.ok())
+            .filter(|e| e.file_name().to_string_lossy().contains("kladd-tmp"))
+            .collect();
+        assert!(leftovers.is_empty());
+        std::fs::remove_dir_all(&dir).unwrap();
+    }
+}

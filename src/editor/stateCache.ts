@@ -1,4 +1,5 @@
 import type { EditorState } from "@codemirror/state";
+import type { EditorView } from "@codemirror/view";
 
 /** Per-tab editor state: edits, cursor, selection, and undo history all
  * survive tab switches. One EditorView exists; states are swapped in. */
@@ -18,4 +19,16 @@ export function dropEditorState(path: string) {
 
 export function clearEditorStates() {
   states.clear();
+}
+
+/** The one live view and which tab it currently shows, so the sync layer
+ * can read the freshest doc and dispatch external reloads. */
+let active: { path: string; view: EditorView } | null = null;
+
+export function setActiveEditor(path: string | null, view: EditorView | null) {
+  active = path !== null && view !== null ? { path, view } : null;
+}
+
+export function activeEditor(): { path: string; view: EditorView } | null {
+  return active;
 }

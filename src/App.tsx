@@ -6,6 +6,7 @@ import { QuickSwitcher } from "./shell/QuickSwitcher.tsx";
 import { Tabs } from "./shell/Tabs.tsx";
 import { TitleBar } from "./shell/TitleBar.tsx";
 import "./shell/shell.css";
+import { initSync } from "./store/sync.ts";
 import { initialDocFor, useTabs } from "./store/tabs.ts";
 import { useWorkspace } from "./store/workspace.ts";
 
@@ -13,6 +14,8 @@ export default function App() {
   const folder = useWorkspace((s) => s.folder);
   const active = useTabs((s) => s.active);
   const [switcherOpen, setSwitcherOpen] = useState(false);
+
+  useEffect(() => initSync(), []);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {

@@ -4,11 +4,12 @@ import { EditorState } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
 import { minimalSetup } from "codemirror";
 import { useEffect, useRef } from "react";
+import { scheduleSave, syncAnnotation } from "../store/sync.ts";
 import { livePreview } from "./livePreview.ts";
-import { cachedEditorState, cacheEditorState } from "./stateCache.ts";
+import { cachedEditorState, cacheEditorState, setActiveEditor } from "./stateCache.ts";
 import "./theme.css";
 
-function freshState(doc: string): EditorState {
+function freshState(path: string, doc: string): EditorState {
   return EditorState.create({
     doc,
     extensions: [
@@ -16,6 +17,16 @@ function freshState(doc: string): EditorState {
       markdown({ base: markdownLanguage, codeLanguages: languages }),
       EditorView.lineWrapping,
       livePreview,
+      // Autosave: user edits schedule a debounced save; reloads from disk
+      // (marked with syncAnnotation) must not save what we just read.
+      EditorView.updateListener.of((update) => {
+        if (
+          update.docChanged &&
+          !update.transactions.some((tr) => tr.annotation(syncAnnotation) === true)
+        ) {
+          scheduleSave(path);
+        }
+      }),
     ],
   });
 }
@@ -30,6 +41,7 @@ export function Editor({ path, initialDoc }: { path: string; initialDoc: string 
     view.current = v;
     return () => {
       if (shownPath.current !== null) cacheEditorState(shownPath.current, v.state);
+      setActiveEditor(null, null);
       shownPath.current = null;
       view.current = null;
       v.destroy();
@@ -41,7 +53,8 @@ export function Editor({ path, initialDoc }: { path: string; initialDoc: string 
     if (v === null || shownPath.current === path) return;
     if (shownPath.current !== null) cacheEditorState(shownPath.current, v.state);
     shownPath.current = path;
-    v.setState(cachedEditorState(path) ?? freshState(initialDoc));
+    v.setState(cachedEditorState(path) ?? freshState(path, initialDoc));
+    setActiveEditor(path, v);
     v.focus();
   }, [path, initialDoc]);
 

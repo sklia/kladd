@@ -1,6 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
 import { create } from "zustand";
 import { clearEditorStates, dropEditorState } from "../editor/stateCache.ts";
+import { flushAllSaves, flushSave } from "./sync.ts";
 
 export interface Tab {
   /** Absolute path; unique tab id. */
@@ -15,6 +16,11 @@ const initialDocs = new Map<string, string>();
 
 export function initialDocFor(path: string): string {
   return initialDocs.get(path) ?? "";
+}
+
+/** Keep the initial doc in step with disk after an external reload. */
+export function refreshInitialDoc(path: string, text: string) {
+  if (initialDocs.has(path)) initialDocs.set(path, text);
 }
 
 interface TabsState {
@@ -40,6 +46,7 @@ export const useTabs = create<TabsState>()((set, get) => ({
   },
 
   closeTab: (path) => {
+    void flushSave(path); // reads the doc synchronously, safe to drop state after
     const tabs = get().tabs.filter((t) => t.path !== path);
     initialDocs.delete(path);
     dropEditorState(path);
@@ -51,6 +58,7 @@ export const useTabs = create<TabsState>()((set, get) => ({
   setActive: (path) => set({ active: path }),
 
   closeAll: () => {
+    void flushAllSaves(); // doc capture is synchronous, before the clears below
     initialDocs.clear();
     clearEditorStates();
     set({ tabs: [], active: null });

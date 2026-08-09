@@ -25,3 +25,5 @@ tauri = { version = "2.11.3", features = [] }
 tauri-plugin-log = "2"
 tauri-plugin-dialog = "2"
 ignore = "0.4"
+notify = "8"
+notify-debouncer-full = "0.7"
