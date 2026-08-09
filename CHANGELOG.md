@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.2](https://github.com/sklia/kladd/compare/v0.1.1...v0.1.2) (2026-08-09)
+
+
+### Bug Fixes
+
+* **ci:** pass toolchain as explicit input to rust-toolchain action ([1ee58d5](https://github.com/sklia/kladd/commit/1ee58d56e75c6f6363637112f10b4e567dc62899))
+
 ## [0.1.1](https://github.com/sklia/kladd/compare/v0.1.0...v0.1.1) (2026-08-09)
 
 
