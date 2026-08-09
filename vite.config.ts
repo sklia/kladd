@@ -4,7 +4,9 @@ import { defineConfig, lazyPlugins } from "vite-plus";
 
 // https://vite.dev/config/
 export default defineConfig({
-  fmt: {},
+  // CHANGELOG.md and the manifest are release-please's own generated
+  // files, in its formatting; ours shouldn't fight it.
+  fmt: { ignorePatterns: ["CHANGELOG.md", ".github/.release-please-manifest.json"] },
   lint: {
     plugins: ["react", "typescript", "oxc"],
     rules: {
