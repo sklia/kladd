@@ -1,11 +1,6 @@
 name: CodeQL
 
 on:
-  push:
-    branches: [main]
-    paths: ["**/*.ts", "**/*.tsx", ".github/workflows/codeql.yml"]
-  pull_request:
-    paths: ["**/*.ts", "**/*.tsx", ".github/workflows/codeql.yml"]
   schedule:
     - cron: "30 6 * * 1"
 
