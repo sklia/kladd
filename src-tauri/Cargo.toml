@@ -1,6 +1,6 @@
 [package]
 name = "kladd"
-version = "0.1.1"
+version = "0.1.2"
 description = "A fast, minimal markdown editor"
 authors = ["Erlend Ellefsen"]
 license = "MIT"
