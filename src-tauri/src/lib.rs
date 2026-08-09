@@ -19,6 +19,8 @@ fn confirm_quit(app: tauri::AppHandle) {
 pub fn run() {
     let app = tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_updater::Builder::new().build())
+        .plugin(tauri_plugin_process::init())
         .manage(watch::WatcherState::default())
         .setup(|app| {
             if cfg!(debug_assertions) {

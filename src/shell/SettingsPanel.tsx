@@ -1,4 +1,5 @@
 import { type ThemePref, useSettings } from "../store/settings.ts";
+import { restartToUpdate, useUpdater } from "../store/updater.ts";
 import { Overlay } from "./Overlay.tsx";
 
 const THEMES: { value: ThemePref; label: string }[] = [
@@ -18,6 +19,7 @@ export function SettingsPanel({ onClose }: { onClose: () => void }) {
   const setTheme = useSettings((s) => s.setTheme);
   const delay = useSettings((s) => s.autosaveDelayMs);
   const setDelay = useSettings((s) => s.setAutosaveDelay);
+  const updateReady = useUpdater((s) => s.ready);
 
   return (
     <Overlay onClose={onClose} className="settings">
@@ -56,6 +58,14 @@ export function SettingsPanel({ onClose }: { onClose: () => void }) {
           ))}
         </div>
       </div>
+      {updateReady !== null && (
+        <div className="settings-row">
+          <span className="settings-label">Update {updateReady} ready</span>
+          <button type="button" className="empty-open" onClick={restartToUpdate}>
+            Restart to apply
+          </button>
+        </div>
+      )}
     </Overlay>
   );
 }

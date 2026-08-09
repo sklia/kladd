@@ -7,6 +7,7 @@ import { SettingsPanel } from "./shell/SettingsPanel.tsx";
 import { TitleBar } from "./shell/TitleBar.tsx";
 import "./shell/shell.css";
 import { applyTheme, SIDEBAR_DEFAULT, useSettings } from "./store/settings.ts";
+import { checkForUpdates } from "./store/updater.ts";
 import { initSync } from "./store/sync.ts";
 import { initialDocFor, useTabs } from "./store/tabs.ts";
 import { useWorkspace } from "./store/workspace.ts";
@@ -38,6 +39,10 @@ export default function App() {
   };
 
   useEffect(() => initSync(), []);
+
+  useEffect(() => {
+    void checkForUpdates();
+  }, []);
 
   useEffect(() => {
     applyTheme(useSettings.getState().theme);
