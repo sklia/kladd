@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.3](https://github.com/sklia/kladd/compare/v0.1.2...v0.1.3) (2026-08-10)
+
+
+### Bug Fixes
+
+* update to app-specific password ([dc19690](https://github.com/sklia/kladd/commit/dc19690071765f8c24075517baf1c999499c4644))
+
 ## [0.1.2](https://github.com/sklia/kladd/compare/v0.1.1...v0.1.2) (2026-08-09)
 
 
