@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0](https://github.com/sklia/kladd/compare/v0.2.0...v0.3.0) (2026-08-22)
+
+
+### Features
+
+* initial git integration, toasts and logo ([e083947](https://github.com/sklia/kladd/commit/e083947649d35bdd385ead24a855c0c378bb5810))
+
 ## [0.2.0](https://github.com/sklia/kladd/compare/v0.1.3...v0.2.0) (2026-08-22)
 
 
