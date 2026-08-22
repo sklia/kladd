@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.0](https://github.com/sklia/kladd/compare/v0.1.3...v0.2.0) (2026-08-22)
+
+
+### Features
+
+* paste intelligence (v0.2) ([#6](https://github.com/sklia/kladd/issues/6)) ([001aae0](https://github.com/sklia/kladd/commit/001aae0ff9447e363e20042884f355efe8a87e33))
+
 ## [0.1.3](https://github.com/sklia/kladd/compare/v0.1.2...v0.1.3) (2026-08-10)
 
 
