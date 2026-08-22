@@ -1,5 +1,5 @@
 import { syntaxTree } from "@codemirror/language";
-import { RangeSet, type EditorState, type Range } from "@codemirror/state";
+import { Facet, RangeSet, type EditorState, type Range } from "@codemirror/state";
 import {
   Decoration,
   type DecorationSet,
@@ -10,11 +10,15 @@ import {
 } from "@codemirror/view";
 import { calloutLine, calloutTitle, calloutType } from "./callouts.ts";
 import { frontmatterRange } from "./frontmatter.ts";
-import { bullet, CheckboxWidget, hr, toggleTask } from "./widgets.ts";
+import { bullet, CheckboxWidget, hr, ImageWidget, toggleTask } from "./widgets.ts";
 
 // Live preview: the document is always plain markdown; everything below is
 // view-layer decoration. Raw syntax is revealed on lines the selection
 // touches, rendered everywhere else.
+
+/** Absolute directory of the open file; relative image sources resolve
+ * against it. One value per editor, set in freshState. */
+export const docDir = Facet.define<string, string>({ combine: (v) => v[0] ?? "" });
 
 const hidden = Decoration.replace({});
 
@@ -126,8 +130,18 @@ export function buildDecorations(
       enter(node) {
         const { name, from, to } = node;
         if (to <= fmEnd) return false; // inside frontmatter: leave raw
-        // Images share URL/LinkMark node names with links; out of scope, stay raw.
-        if (name === "Image") return false;
+        // Images share URL/LinkMark node names with links; handled here so
+        // the link cases below never fire inside one.
+        if (name === "Image") {
+          if (!lineIsActive(from, to)) {
+            const urlNode = node.node.getChild("URL");
+            const altNode = node.node.getChild("LinkLabel");
+            const src = urlNode === null ? "" : doc.sliceString(urlNode.from, urlNode.to);
+            const alt = altNode === null ? "" : doc.sliceString(altNode.from, altNode.to);
+            replaceWith(from, to, new ImageWidget(src, state.facet(docDir), alt));
+          }
+          return false;
+        }
 
         const heading = /^ATXHeading(\d)$/.exec(name);
         if (heading) {

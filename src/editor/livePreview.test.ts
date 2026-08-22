@@ -80,4 +80,13 @@ describe("live preview reveal", () => {
       [6, 8],
     ]);
   });
+
+  it("collapses an image unless the selection touches it", () => {
+    const doc = "look ![alt text](assets/pic.png) now\n\nelsewhere";
+    // Cursor elsewhere: the whole image syntax is replaced by the widget.
+    const away = hiddenRanges(doc, doc.length);
+    expect(away).toEqual([[5, 32]]);
+    // Cursor inside the image syntax: raw.
+    expect(hiddenRanges(doc, 10)).toEqual([]);
+  });
 });
