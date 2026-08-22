@@ -87,15 +87,13 @@ Cheap now, expensive later. Most of it comes with the toolchain:
   the livePreview decoration logic is pure (state + ranges in, decorations
   out) and unit-tested without a DOM; the save/watch loop gets integration
   tests when it exists.
-- Pre-commit hook (`.githooks/pre-commit`) runs `vp check` (~2s). Enable once
-  per clone: `git config core.hooksPath .githooks`. No pre-push hook:
-  anything slower than a second lives in CI.
-- CI: GitHub Actions, one job (check + test) with path filters,
-  cancel-in-progress, and a 5-minute timeout cap; free-tier minutes are the
-  constraint while the repo is private. CodeQL needs a public repo (or paid
-  Advanced Security): add it back when kladd goes public. Platform builds on
-  tags come with the release pipeline (build order step 6); note macOS
-  runners bill 10x minutes.
+- Pre-commit hook (`.githooks/pre-commit`) runs `vp check` and `vp test`.
+  Enable once per clone: `git config core.hooksPath .githooks`. This is the
+  only gate: no CI workflow for checks/tests. Solo project, so a stray
+  external PR gets eyeballed manually rather than backed by a bot; revisit
+  (add a minimal PR-only check job, or CodeQL) if that stops being true.
+  Release builds (signing, notarization) still run in CI on tags; see build
+  order step 6.
 
 ## Roadmap
 
