@@ -1,12 +1,18 @@
 import { useEffect, useRef, useState } from "react";
 import { Editor } from "./editor/Editor.tsx";
+import { CloneDialog } from "./shell/CloneDialog.tsx";
+import { CommitDialog } from "./shell/CommitDialog.tsx";
 import { EmptyState } from "./shell/EmptyState.tsx";
 import { FileTree } from "./shell/FileTree.tsx";
+import { GitStatus } from "./shell/GitStatus.tsx";
 import { QuickSwitcher } from "./shell/QuickSwitcher.tsx";
+import { PublishDialog } from "./shell/PublishDialog.tsx";
 import { SettingsPanel } from "./shell/SettingsPanel.tsx";
 import { TitleBar } from "./shell/TitleBar.tsx";
+import { Toasts } from "./shell/Toasts.tsx";
 import "./shell/shell.css";
 import { applyTheme, SIDEBAR_DEFAULT, useSettings } from "./store/settings.ts";
+import { useGit } from "./store/git.ts";
 import { checkForUpdates } from "./store/updater.ts";
 import { initSync } from "./store/sync.ts";
 import { initialDocFor, useTabs } from "./store/tabs.ts";
@@ -71,7 +77,10 @@ export default function App() {
         <EmptyState />
       ) : (
         <div className="app-body">
-          <FileTree />
+          <div className="sidebar">
+            <FileTree />
+            <GitStatus />
+          </div>
           <div
             className="sidebar-resize"
             role="separator"
@@ -92,6 +101,14 @@ export default function App() {
       )}
       {switcherOpen && folder !== null && <QuickSwitcher onClose={() => setSwitcherOpen(false)} />}
       {settingsOpen && <SettingsPanel onClose={() => setSettingsOpen(false)} />}
+      {useGit((s) => s.dialogOpen) && <CommitDialog />}
+      {useGit((s) => s.cloneOpen) && (
+        <CloneDialog onClose={() => useGit.getState().setCloneOpen(false)} />
+      )}
+      {useGit((s) => s.publishOpen) && (
+        <PublishDialog onClose={() => useGit.getState().setPublishOpen(false)} />
+      )}
+      <Toasts />
     </div>
   );
 }

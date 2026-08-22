@@ -1,4 +1,5 @@
 mod fs;
+mod git;
 mod watch;
 
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -88,6 +89,16 @@ pub fn run() {
             fs::create_dir,
             fs::rename_path,
             fs::delete_path,
+            git::git_status,
+            git::git_commit,
+            git::git_push,
+            git::git_pull,
+            git::git_clone,
+            git::git_init,
+            git::git_remote_url,
+            git::github_cli_ready,
+            git::github_create_repo,
+            git::open_url,
             watch::watch_workspace,
             confirm_quit
         ])

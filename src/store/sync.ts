@@ -5,7 +5,9 @@ import { getCurrentWindow } from "@tauri-apps/api/window";
 import { activeEditor, cachedEditorState, cacheEditorState } from "../editor/stateCache.ts";
 import { minimalDiff } from "../lib/minimalDiff.ts";
 import { isUnder } from "../lib/tree.ts";
+import { useGit } from "./git.ts";
 import { useSettings } from "./settings.ts";
+import { toastError } from "./toasts.ts";
 import { initialDocFor, refreshInitialDoc, useTabs } from "./tabs.ts";
 import { useWorkspace } from "./workspace.ts";
 
@@ -29,8 +31,7 @@ function saveNow(path: string): Promise<void> {
   const contents = currentDocFor(path);
   if (contents === null) return Promise.resolve();
   return invoke<void>("write_file_atomic", { path, contents }).catch((e) => {
-    // ponytail: log only; a save-error surface (status bar) comes with step 5
-    console.error(`save failed for ${path}:`, e);
+    toastError(`Save failed for ${path}: ${e}`);
   });
 }
 
@@ -104,6 +105,8 @@ async function onFsChanged(paths: string[]) {
   const open = new Set(useTabs.getState().tabs.map((t) => t.path));
   await Promise.all(paths.filter((p) => open.has(p)).map(reloadFromDisk));
   await useWorkspace.getState().refreshChanged(paths);
+  // Git status piggybacks on fs activity (debounced in the git store).
+  void useGit.getState().refresh();
 }
 
 /** Called once from App. Returns a cleanup for StrictMode double-mounts. */

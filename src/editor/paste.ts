@@ -2,6 +2,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { EditorView } from "@codemirror/view";
 import { htmlToMarkdown } from "../lib/htmlToMarkdown.ts";
 import { parentDir } from "../lib/tree.ts";
+import { toastError } from "../store/toasts.ts";
 import { activeEditor } from "./stateCache.ts";
 
 export function isUrl(text: string): boolean {
@@ -26,7 +27,7 @@ async function pasteImage(file: File, path: string) {
   try {
     await invoke("write_binary_file", { path: dest, data: Array.from(bytes) });
   } catch (e) {
-    console.error(`paste image failed for ${dest}:`, e);
+    toastError(`Paste image failed: ${String(e)}`);
     return;
   }
   // The write is async; by the time it resolves the user may have switched
