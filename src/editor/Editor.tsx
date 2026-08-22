@@ -7,11 +7,12 @@ import { minimalSetup } from "codemirror";
 import { useEffect, useRef } from "react";
 import { scheduleSave, syncAnnotation } from "../store/sync.ts";
 import { frontmatter, frontmatterRange } from "./frontmatter.ts";
-import { livePreview } from "./livePreview.ts";
+import { docDir, livePreview } from "./livePreview.ts";
 import { pasteHandler } from "./paste.ts";
 import { renderMode, toggleRawMode } from "./rawMode.ts";
 import { cachedEditorState, cacheEditorState, setActiveEditor } from "./stateCache.ts";
 import { tables } from "./tables.ts";
+import { parentDir } from "../lib/tree.ts";
 import "./theme.css";
 
 const rendered = [livePreview, frontmatter, tables];
@@ -33,6 +34,7 @@ function freshState(path: string, doc: string): EditorState {
       minimalSetup,
       markdown({ base: markdownLanguage, codeLanguages: languages }),
       EditorView.lineWrapping,
+      docDir.of(parentDir(path)),
       renderMode.of(rendered),
       pasteHandler(path),
       search({ top: true }),

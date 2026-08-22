@@ -45,6 +45,44 @@ fn extract_title(path: &Path) -> Option<String> {
         .filter(|h| !h.is_empty())
 }
 
+/// A directory earns its place in the tree only if markdown lives somewhere
+/// under it (any depth), or it is completely empty (so a newly created folder
+/// stays visible until filled). Name-agnostic: an image-only paste target like
+/// assets/ stays out of the way, while a notes folder that happens to be named
+/// assets keeps its place. Unreadable directories are shown rather than
+/// silently hidden. ponytail: each listing walks subdirectories to prove they
+/// hold markdown; fine at personal-notes scale, revisit for huge trees.
+fn keep_dir(dir: &Path) -> bool {
+    let Ok(entries) = std::fs::read_dir(dir) else {
+        return true;
+    };
+    let mut any = false;
+    for entry in entries.flatten() {
+        // Dotfiles (.DS_Store and friends) don't count as content: a folder
+        // that "looks" empty must behave as empty.
+        if entry.file_name().to_string_lossy().starts_with('.') {
+            continue;
+        }
+        any = true;
+        match entry.file_type() {
+            // Symlinks are neither file nor dir here (file_type doesn't
+            // follow), which also keeps symlink cycles out of the walk.
+            Ok(t) if t.is_dir() => {
+                if keep_dir(&entry.path()) {
+                    return true;
+                }
+            }
+            Ok(t) if t.is_file() => {
+                if is_markdown(&entry.file_name().to_string_lossy()) {
+                    return true;
+                }
+            }
+            _ => {}
+        }
+    }
+    !any
+}
+
 /// Shallow listing for the file tree; the frontend expands lazily.
 /// Only directories and markdown files: kladd shows nothing else.
 /// Hidden entries are skipped: dotfiles are noise in a writing tool.
@@ -59,6 +97,9 @@ pub fn read_dir(path: PathBuf) -> Result<Vec<DirEntry>, String> {
                 return None;
             }
             let is_dir = e.file_type().ok()?.is_dir();
+            if is_dir && !keep_dir(&e.path()) {
+                return None;
+            }
             if !is_dir && !is_markdown(&name) {
                 return None;
             }
@@ -204,6 +245,33 @@ mod tests {
         assert_eq!(case("# Just a Heading\nbody\n"), Some("Just a Heading".into()));
         assert_eq!(case("no heading here\n"), None);
         std::fs::remove_dir_all(&dir).unwrap();
+    }
+
+    #[test]
+    fn tree_hides_image_only_dirs_keeps_empty_and_markdown_ones() {
+        use std::fs;
+        let dir = std::env::temp_dir().join(format!("kladd-tree-{}", std::process::id()));
+        let assets = dir.join("assets");
+        fs::create_dir_all(&assets).unwrap();
+        fs::write(assets.join("paste.png"), [1, 2, 3]).unwrap();
+        let empty = dir.join("new-folder");
+        fs::create_dir_all(&empty).unwrap();
+        let named_assets = dir.join("notes-assets");
+        fs::create_dir_all(named_assets.join("deep")).unwrap();
+        fs::write(named_assets.join("deep").join("note.md"), "# hi").unwrap();
+        let emptied = dir.join("emptied");
+        fs::create_dir_all(&emptied).unwrap();
+        fs::write(emptied.join(".DS_Store"), [1]).unwrap();
+
+        assert!(!keep_dir(&assets), "image-only dir should be hidden");
+        assert!(keep_dir(&empty), "empty dir stays visible for creation");
+        assert!(keep_dir(&named_assets), "markdown at any depth keeps a dir");
+        assert!(
+            keep_dir(&emptied),
+            "dotfiles don't count as content: an emptied folder is empty"
+        );
+
+        fs::remove_dir_all(&dir).unwrap();
     }
 
     #[test]

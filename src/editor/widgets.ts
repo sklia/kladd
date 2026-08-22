@@ -1,4 +1,41 @@
+import { convertFileSrc } from "@tauri-apps/api/core";
 import { EditorView, WidgetType } from "@codemirror/view";
+
+/** Renders an inline markdown image. Path resolution happens in toDOM, not
+ * at decoration-build time, so buildDecorations stays pure and testable
+ * without the Tauri runtime (convertFileSrc needs it). */
+export class ImageWidget extends WidgetType {
+  src: string;
+  dir: string;
+  alt: string;
+  constructor(src: string, dir: string, alt: string) {
+    super();
+    this.src = src;
+    this.dir = dir;
+    this.alt = alt;
+  }
+  eq(other: ImageWidget) {
+    return other.src === this.src && other.dir === this.dir && other.alt === this.alt;
+  }
+  toDOM() {
+    const img = document.createElement("img");
+    img.className = "cm-image";
+    img.alt = this.alt;
+    img.title = this.alt;
+    img.loading = "lazy";
+    if (/^[a-z][a-z0-9+.-]*:/i.test(this.src) || this.src.startsWith("//")) {
+      img.src = this.src;
+    } else {
+      const abs = this.src.startsWith("/") ? this.src : `${this.dir}/${this.src}`;
+      try {
+        img.src = convertFileSrc(abs);
+      } catch {
+        // Outside Tauri (browser dev): nothing sensible to load.
+      }
+    }
+    return img;
+  }
+}
 
 class BulletWidget extends WidgetType {
   eq() {

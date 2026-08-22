@@ -262,6 +262,14 @@
 .cm-bullet {
   color: var(--muted);
 }
+
+/* Inline images: shrink to the pane, never blow up layout */
+.cm-image {
+  max-width: 100%;
+  height: auto;
+  vertical-align: middle;
+  border-radius: 6px;
+}
 .cm-list-mark {
   color: var(--muted);
 }
