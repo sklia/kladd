@@ -83,6 +83,7 @@ pub fn run() {
             fs::list_files,
             fs::read_file,
             fs::write_file_atomic,
+            fs::write_binary_file,
             fs::create_file,
             fs::create_dir,
             fs::rename_path,

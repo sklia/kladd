@@ -137,6 +137,18 @@ pub fn write_file_atomic(path: PathBuf, contents: String) -> Result<(), String> 
     })
 }
 
+/// For pasted images: creates the parent dir (the assets folder) on demand.
+/// No atomic-temp-file dance here, unlike `write_file_atomic` — this is an
+/// occasional paste, not the autosave hot path, and the filename is unique
+/// per paste so there's nothing to race with.
+#[tauri::command]
+pub fn write_binary_file(path: PathBuf, data: Vec<u8>) -> Result<(), String> {
+    if let Some(dir) = path.parent() {
+        std::fs::create_dir_all(dir).map_err(|e| e.to_string())?;
+    }
+    std::fs::write(&path, data).map_err(|e| e.to_string())
+}
+
 /// Fails if the file already exists: creating over content is a data-loss
 /// path, and the frontend validates names before calling.
 /// New notes start with "# " so the first thing typed is the heading.
@@ -191,6 +203,17 @@ mod tests {
         assert_eq!(case("---\ndate: 2026\n---\n\n# From Heading\n"), Some("From Heading".into()));
         assert_eq!(case("# Just a Heading\nbody\n"), Some("Just a Heading".into()));
         assert_eq!(case("no heading here\n"), None);
+        std::fs::remove_dir_all(&dir).unwrap();
+    }
+
+    #[test]
+    fn binary_write_creates_parent_dir_and_writes_bytes() {
+        let dir = std::env::temp_dir().join(format!("kladd-binary-{}", std::process::id()));
+        let target = dir.join("assets").join("paste.png");
+
+        write_binary_file(target.clone(), vec![1, 2, 3]).unwrap();
+
+        assert_eq!(std::fs::read(&target).unwrap(), vec![1, 2, 3]);
         std::fs::remove_dir_all(&dir).unwrap();
     }
 

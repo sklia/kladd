@@ -8,6 +8,7 @@ import { useEffect, useRef } from "react";
 import { scheduleSave, syncAnnotation } from "../store/sync.ts";
 import { frontmatter, frontmatterRange } from "./frontmatter.ts";
 import { livePreview } from "./livePreview.ts";
+import { pasteHandler } from "./paste.ts";
 import { renderMode, toggleRawMode } from "./rawMode.ts";
 import { cachedEditorState, cacheEditorState, setActiveEditor } from "./stateCache.ts";
 import { tables } from "./tables.ts";
@@ -33,6 +34,7 @@ function freshState(path: string, doc: string): EditorState {
       markdown({ base: markdownLanguage, codeLanguages: languages }),
       EditorView.lineWrapping,
       renderMode.of(rendered),
+      pasteHandler(path),
       search({ top: true }),
       keymap.of([...searchKeymap, { key: "Mod-e", run: (v) => toggleRawMode(v, rendered) }]),
       // Autosave: user edits schedule a debounced save; reloads from disk
